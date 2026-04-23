@@ -29,7 +29,10 @@ from dynamic_benchmarks import DynamicBenchmarkSystem
 
 
 # Initialize Flask app
+from werkzeug.middleware.proxy_fix import ProxyFix
 app = Flask(__name__)
+# Enable ProxyFix to correctly handle Secure cookies behind Hugging Face's HTTPS proxy
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 # Dashboard route: protected, fetch user details, render dashboard.html
 @app.route('/dashboard')

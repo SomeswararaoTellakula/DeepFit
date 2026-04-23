@@ -8,9 +8,9 @@ def init_session_settings(app):
     from datetime import timedelta
     
     app.config.update(
-        SESSION_COOKIE_SECURE=False,  # Allow cookies over HF proxy
+        SESSION_COOKIE_SECURE=True,   # Required for SameSite=None
         SESSION_COOKIE_HTTPONLY=True,
-        SESSION_COOKIE_SAMESITE='Lax',
+        SESSION_COOKIE_SAMESITE='None', # Required for Hugging Face iframe embedding
         PERMANENT_SESSION_LIFETIME=timedelta(days=7)
     )
 
