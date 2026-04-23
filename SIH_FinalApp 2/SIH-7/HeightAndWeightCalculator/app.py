@@ -2477,6 +2477,14 @@ def other_disabled_registration():
 
 if __name__ == '__main__':
     import os
+    from download_assets import download_missing_assets
+    
+    # Download missing images from GitHub (bypass HF binary restrictions)
+    try:
+        download_missing_assets()
+    except Exception as e:
+        print(f"Asset download failed: {e}")
+
     # Default to 7860 for Hugging Face Spaces if PORT env var is missing
     port = int(os.environ.get('PORT', 7860))
     # For Hugging Face Spaces, we must run on 0.0.0.0
