@@ -70,6 +70,15 @@ class MockDB:
                 'place': 'India'
             })
 
+    def __getitem__(self, name):
+        """Allow accessing collections using db['name'] syntax"""
+        if hasattr(self, name):
+            return getattr(self, name)
+        # Create a generic collection if it doesn't exist
+        db_dir = "mock_db_data"
+        os.makedirs(db_dir, exist_ok=True)
+        return MockCollection(name, f"{db_dir}/{name}.json")
+
 def connect_mongodb():
     global _mock_db_instance
     uri = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/')
