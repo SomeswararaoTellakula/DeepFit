@@ -8,11 +8,10 @@ def init_session_settings(app):
     from datetime import timedelta
     
     app.config.update(
-        SESSION_COOKIE_SECURE=True,  # Only send cookie over HTTPS
-        SESSION_COOKIE_HTTPONLY=True,  # Prevent JavaScript access
-        SESSION_COOKIE_SAMESITE='Lax',  # Protect against CSRF
-        PERMANENT_SESSION_LIFETIME=timedelta(days=7),  # Session expires after 7 days
-        SESSION_TYPE='filesystem'
+        SESSION_COOKIE_SECURE=False,  # Allow cookies over HF proxy
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE='Lax',
+        PERMANENT_SESSION_LIFETIME=timedelta(days=7)
     )
 
 def login_required(f):

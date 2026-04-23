@@ -112,7 +112,9 @@ logger = setup_logging('deepfit')
 log_info("Starting DeepFit application")
 
 # Configure secure sessions
-app.secret_key = secrets.token_hex(32)  # Use 32 bytes for extra security
+# Use a stable secret key from environment or a hardcoded fallback
+# This prevents sessions from being invalidated on every app restart
+app.secret_key = os.environ.get('SECRET_KEY', 'deepfit_secure_session_key_2024_sih_final')
 init_session_settings(app)
 
 # Configure CORS for entire application
