@@ -4,7 +4,7 @@ import logging
 
 def download_missing_assets():
     """Download missing images from GitHub to satisfy Hugging Face binary restrictions"""
-    GITHUB_RAW_BASE = "https://raw.githubusercontent.com/SomeswararaoTellakula/DeepFit/main/SIH_FinalApp%202/SIH-7/HeightAndWeightCalculator/static/images"
+    GITHUB_RAW_BASE = "https://raw.githubusercontent.com/SomeswararaoTellakula/DeepFit/cdn/SIH_FinalApp%202/SIH-7/HeightAndWeightCalculator/static/images"
     
     ASSETS = [
         "background.png",
