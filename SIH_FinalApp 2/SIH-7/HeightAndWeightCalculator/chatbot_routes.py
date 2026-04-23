@@ -1,10 +1,15 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, render_template
 from gemini_chatbot import GeminiChatbot
 import os
 from werkzeug.utils import secure_filename
 import traceback
 
 chatbot_bp = Blueprint('chatbot', __name__)
+
+@chatbot_bp.route('/chatbot')
+def chatbot_ui():
+    """Render the chatbot UI page"""
+    return render_template('chatbot.html')
 
 # Use the provided Gemini API key
 GEMINI_API_KEY = "AIzaSyAMr2HcsBfccN71gXRjPrSn_P-1hGmVmWs"

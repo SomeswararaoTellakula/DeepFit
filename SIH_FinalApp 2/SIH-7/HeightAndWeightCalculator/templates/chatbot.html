@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card chat-card border-0 shadow-lg overflow-hidden">
+                <div class="card-header bg-primary text-white p-4 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="chat-avatar me-3">
+                            <i class="fas fa-robot fa-2x"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-0">DeepFit AI Assistant</h4>
+                            <small class="opacity-75">Your personal health & fitness companion</small>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-light btn-sm rounded-pill" onclick="resetChat()">
+                        <i class="fas fa-sync-alt me-1"></i> Reset
+                    </button>
+                </div>
+                
+                <div class="card-body chat-messages p-4" id="chatMessages">
+                    <div class="message bot-message mb-4">
+                        <div class="message-content p-3 rounded-4 shadow-sm">
+                            Hello! I'm your DeepFit AI Assistant. I can help you with exercise techniques, interpret your fitness diagnostics, or answer general health questions. How can I help you today?
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-light p-4 border-0">
+                    <div class="input-group mb-3">
+                        <input type="text" id="userInput" class="form-control rounded-pill shadow-sm py-3 px-4" placeholder="Type your message..." onkeypress="if(event.key === 'Enter') sendMessage()">
+                        <button class="btn btn-primary rounded-pill px-4 ms-2 shadow-sm" onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <label class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm mb-0 cursor-pointer">
+                            <i class="fas fa-image me-1"></i> Analyze Image
+                            <input type="file" id="imageInput" class="d-none" accept="image/*" onchange="sendImage()">
+                        </label>
+                        <label class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm mb-0 cursor-pointer">
+                            <i class="fas fa-file-medical me-1"></i> Analyze File
+                            <input type="file" id="fileInput" class="d-none" onchange="sendFile()">
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chat-card {
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        min-height: 600px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .chat-messages {
+        height: 450px;
+        overflow-y: auto;
+        flex-grow: 1;
+        scroll-behavior: smooth;
+    }
+    
+    .message {
+        max-width: 80%;
+        margin-bottom: 1rem;
+        display: flex;
+    }
+    
+    .bot-message {
+        align-self: flex-start;
+    }
+    
+    .user-message {
+        align-self: flex-end;
+        flex-direction: row-reverse;
+        margin-left: auto;
+    }
+    
+    .message-content {
+        padding: 12px 20px;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+    
+    .bot-message .message-content {
+        background: #f0f2f5;
+        color: #1c1e21;
+        border-bottom-left-radius: 4px;
+    }
+    
+    .user-message .message-content {
+        background: #0084ff;
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+    
+    .typing-indicator {
+        display: none;
+        padding: 12px 20px;
+        background: #f0f2f5;
+        border-radius: 20px;
+        margin-bottom: 1rem;
+        width: fit-content;
+    }
+    
+    .dot {
+        height: 8px;
+        width: 8px;
+        background: #90949c;
+        border-radius: 50%;
+        display: inline-block;
+        margin: 0 2px;
+        animation: bounce 1.3s infinite ease-in-out;
+    }
+    
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes bounce {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1.0); }
+    }
+    
+    .cursor-pointer { cursor: pointer; }
+</style>
+
+<script>
+    const messagesContainer = document.getElementById('chatMessages');
+    const userInput = document.getElementById('userInput');
+    
+    function addMessage(text, isUser = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'} mb-4`;
+        
+        messageDiv.innerHTML = `
+            <div class="message-content p-3 rounded-4 shadow-sm">
+                ${text.replace(/\n/g, '<br>')}
+            </div>
+        `;
+        
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    
+    function showTyping() {
+        const typingDiv = document.createElement('div');
+        typingDiv.id = 'typingIndicator';
+        typingDiv.className = 'message bot-message mb-4';
+        typingDiv.innerHTML = `
+            <div class="message-content p-3 rounded-4 shadow-sm bg-light">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
+        `;
+        messagesContainer.appendChild(typingDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    
+    function hideTyping() {
+        const indicator = document.getElementById('typingIndicator');
+        if (indicator) indicator.remove();
+    }
+    
+    async function sendMessage() {
+        const text = userInput.value.trim();
+        if (!text) return;
+        
+        userInput.value = '';
+        addMessage(text, true);
+        showTyping();
+        
+        try {
+            const response = await fetch('/api/chatbot/message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+            
+            const data = await response.json();
+            hideTyping();
+            addMessage(data.response || data.error || 'Sorry, I encountered an error.');
+        } catch (error) {
+            hideTyping();
+            addMessage('Error connecting to the AI assistant.');
+        }
+    }
+    
+    async function sendImage() {
+        const fileInput = document.getElementById('imageInput');
+        if (!fileInput.files[0]) return;
+        
+        const file = fileInput.files[0];
+        addMessage(`[Sent Image: ${file.name}]`, true);
+        showTyping();
+        
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        try {
+            const response = await fetch('/api/chatbot/image', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            hideTyping();
+            addMessage(data.response || data.error);
+        } catch (error) {
+            hideTyping();
+            addMessage('Error analyzing image.');
+        }
+    }
+    
+    async function sendFile() {
+        const fileInput = document.getElementById('fileInput');
+        if (!fileInput.files[0]) return;
+        
+        const file = fileInput.files[0];
+        addMessage(`[Sent File: ${file.name}]`, true);
+        showTyping();
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            const response = await fetch('/api/chatbot/file', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            hideTyping();
+            addMessage(data.response || data.error);
+        } catch (error) {
+            hideTyping();
+            addMessage('Error analyzing file.');
+        }
+    }
+    
+    async function resetChat() {
+        if (!confirm('Clear chat history?')) return;
+        
+        try {
+            await fetch('/api/chatbot/reset', { method: 'POST' });
+            messagesContainer.innerHTML = '';
+            addMessage('Chat history cleared. How can I help you today?');
+        } catch (error) {
+            alert('Failed to reset chat.');
+        }
+    }
+</script>
+{% endblock %}

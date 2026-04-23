@@ -199,11 +199,7 @@ def before_request():
         log_error("Database connection unavailable")
         return render_template('errors/500.html'), 500
         return render_template('errors/500.html'), 500
-# Configure session
-app.config['SESSION_TYPE'] = 'filesystem'
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)  # Session expires after 7 days
-app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookie over HTTPS
-app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to session cookie
+# Session is configured in session_manager.init_session_settings(app)
 
 # Global variables for situps detection
 camera = None
@@ -374,6 +370,8 @@ def login():
             if user and user.get('password'):
                 try:
                     if bcrypt.checkpw(password.encode('utf-8'), user['password']):
+                        # Store 'next' before clearing session
+                        next_url = session.get('next')
                         session.clear()
                         session['user_id'] = str(user['_id'])
                         session['user_email'] = user['email']
