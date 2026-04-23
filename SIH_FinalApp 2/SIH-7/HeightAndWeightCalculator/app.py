@@ -2476,6 +2476,7 @@ def other_disabled_registration():
 
 if __name__ == '__main__':
     import os
-    port = int(os.environ.get('PORT', 5000))
+    # Default to 7860 for Hugging Face Spaces if PORT env var is missing
+    port = int(os.environ.get('PORT', 7860))
     # For Hugging Face Spaces, we must run on 0.0.0.0
     app.run(host='0.0.0.0', port=port, debug=True)
