@@ -379,10 +379,8 @@ def login():
                         session.permanent = True  # Make session permanent
                         print(f"Login successful for user: {user['email']}, ID: {str(user['_id'])}")  # Debug
                         
-                        # Get the next URL from session or use default
-                        next_url = session.get('next')
+                        # Use the next_url preserved before session.clear()
                         if next_url:
-                            session.pop('next', None)  # Remove it from session
                             try:
                                 # Ensure the next_url is for our site
                                 if next_url.startswith('/'):
