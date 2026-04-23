@@ -22,8 +22,6 @@
 }
 
 body {
-    background: url('../images/background.png') no-repeat center center fixed;
-    background-size: cover;
     color: var(--text-primary);
     min-height: 100vh;
     position: relative;
@@ -31,6 +29,19 @@ body {
 }
 
 body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('../images/background.png') no-repeat center center;
+    background-size: cover;
+    z-index: -2;
+    pointer-events: none;
+}
+
+body::after {
     content: '';
     position: fixed;
     top: 0;
