@@ -12,7 +12,7 @@ def chatbot_ui():
     return render_template('chatbot.html')
 
 # Use the provided Gemini API key from environment or fallback to default
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyAMr2HcsBfccN71gXRjPrSn_P-1hGmVmWs")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyDxS5tdSLWiHp894erNzRq6tvcWJRmhkYw")
 UPLOAD_FOLDER = 'uploads/chatbot'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
