@@ -1,3 +1,14 @@
+---
+title: DeepFit AI
+emoji: 🏋️
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+python_version: "3.9"
+app_file: app.py
+pinned: false
+---
+
 # DeepFit: AI-Powered Fitness & Diagnostic System
 
 DeepFit is a comprehensive, AI-driven fitness platform designed to provide accurate health diagnostics and exercise tracking using computer vision. Built for inclusivity and security, DeepFit leverages advanced pose estimation and face verification to deliver a premium personal training experience.
