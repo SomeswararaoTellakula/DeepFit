@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 
+        Capability for opening the app or specific features via Google Assistant 
+        Built-in Intent: actions.intent.OPEN_APP_FEATURE
+    -->
+    <capability android:name="actions.intent.OPEN_APP_FEATURE">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.deepfit.app"
+            android:targetClass="com.deepfit.app.MainActivity">
+            <!-- 
+                Parameter handling: Extracts features mentioned by the user
+                Example: "Hey Google, open workout in DeepFit"
+            -->
+            <parameter
+                android:name="feature"
+                android:key="feature"/>
+        </intent>
+    </capability>
+</shortcuts>

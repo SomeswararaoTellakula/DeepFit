@@ -1,0 +1,155 @@
+/* Header styles for exercise pages */
+.app-header {
+    padding: var(--spacing-lg) 0;
+    margin-bottom: var(--spacing-xl);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+}
+
+.header-title {
+    flex: 1;
+}
+
+.header-title h1 {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin: 0;
+    font-size: 2rem;
+    color: #fff;
+}
+
+.header-title p {
+    margin: var(--spacing-xs) 0 0 0;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1rem;
+}
+
+.header-icon {
+    font-size: 2rem;
+}
+
+.btn-back {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+/* Mobile optimizations */
+@media (max-width: 767px) {
+    .app-header {
+        padding: var(--spacing-md) 0;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-title h1 {
+        font-size: 1.5rem;
+    }
+
+    .header-title p {
+        font-size: 0.9rem;
+    }
+
+    .btn-back {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Button styles */
+.btn {
+    border-radius: 8px;
+    font-weight: 600;
+    padding: var(--spacing-sm) var(--spacing-md);
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    min-height: 44px; /* Better touch targets */
+}
+
+.btn i {
+    font-size: 1.1em;
+}
+
+.btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Status indicators */
+.stat-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+}
+
+.stat-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+.stat-value {
+    color: #fff;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.feedback {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
+}
+
+/* Timer styles */
+.timer-display {
+    text-align: center;
+    padding: var(--spacing-md);
+}
+
+.time-remaining {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-sm);
+    color: #00d4ff;
+}
+
+.timer-label {
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: var(--spacing-sm);
+}
+
+.timer-progress-bar {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: var(--spacing-sm);
+}
+
+.timer-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00d4ff, #00aaff);
+    transition: width 0.3s ease;
+    width: 0%;
+}

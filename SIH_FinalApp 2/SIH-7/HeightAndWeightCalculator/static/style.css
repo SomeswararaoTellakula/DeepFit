@@ -1,0 +1,345 @@
+:root {
+    --primary-color: #4CAF50;
+    --secondary-color: #2196F3;
+    --warning-color: #FFC107;
+    --danger-color: #F44336;
+    --success-color: #4CAF50;
+    --text-primary: #333;
+    --text-secondary: #666;
+    --bg-primary: #6c5ce7;
+    --bg-secondary: #a29bfe;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+    color: #fff;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    margin-bottom: 30px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+}
+
+header p {
+    margin: 10px 0 0;
+    opacity: 0.8;
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.video-section {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.video-container {
+    position: relative;
+    aspect-ratio: 16/9;
+    background: #000;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.video-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    text-align: center;
+}
+
+.rep-counter {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 15px 25px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.rep-counter .count {
+    font-size: 36px;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.rep-counter .label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-top: 5px;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-secondary {
+    background: var(--secondary-color);
+    color: white;
+}
+
+.btn-warning {
+    background: var(--warning-color);
+    color: var(--text-primary);
+}
+
+.btn-success {
+    background: var(--success-color);
+    color: white;
+}
+
+.stats-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.timer-card,
+.stats-card,
+.instructions-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.timer-display {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.time-remaining {
+    font-size: 48px;
+    font-weight: bold;
+    color: var(--secondary-color);
+}
+
+.timer-label {
+    font-size: 14px;
+    opacity: 0.8;
+    margin-top: 5px;
+}
+
+.timer-progress {
+    margin-top: 15px;
+}
+
+.timer-progress-bar {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.timer-progress-fill {
+    height: 100%;
+    background: var(--secondary-color);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.session-status {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.stat-item {
+    margin-bottom: 20px;
+}
+
+.stat-label {
+    font-size: 14px;
+    opacity: 0.8;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--primary-color);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.stat-value.animate {
+    transform: scale(1.1);
+    color: #4CAF50;
+}
+
+.progress-bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    margin: 10px 0;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50, #8BC34A);
+    border-radius: 4px;
+    transition: all 0.5s ease;
+    position: relative;
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+@keyframes celebrate {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: translateY(-20px) scale(1.2);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateY(-40px) scale(0.8);
+        opacity: 0;
+    }
+}
+
+.feedback {
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    border-left: 4px solid var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.feedback.success {
+    background: rgba(76, 175, 80, 0.2);
+    border-left-color: #4CAF50;
+    color: #4CAF50;
+}
+
+.feedback.warning {
+    background: rgba(255, 152, 0, 0.2);
+    border-left-color: #FF9800;
+    color: #FF9800;
+}
+
+.feedback.error {
+    background: rgba(244, 67, 54, 0.2);
+    border-left-color: #f44336;
+    color: #f44336;
+}
+
+.instructions-card ul {
+    padding-left: 20px;
+    margin: 0;
+}
+
+.instructions-card li {
+    margin-bottom: 10px;
+    opacity: 0.9;
+}
+
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.popup-content {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 400px;
+    color: var(--text-primary);
+}
+
+.popup-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+#pose-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+#video-feed {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}

@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepFit - Dumbbell Curl Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='situp-modern.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            /* Title stays at the top */
+            padding: 20px;
+        }
+
+        .chart-card h3 {
+            margin-bottom: 15px;
+            /* Space between heading and chart */
+            text-align: center;
+            width: 100%;
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        .responsive-chart-inner {
+            width: 100%;
+            height: 400px;
+            /* Adjust as needed */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 style="color: #06b6d4;">💪 Dumbbell Curl Results</h1>
+                    <p>Your latest workout performance</p>
+                </div>
+                <a href="/" class="btn btn-secondary" style="text-decoration: none;">← Back to Home</a>
+            </div>
+        </header>
+
+        <div class="results-container">
+            <div class="results-card">
+                <h3>📊 Latest Submission</h3>
+
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-repeat"></i>
+                        Left Arm Reps
+                    </div>
+                    <div class="result-value" id="left-reps-result">-</div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-repeat"></i>
+                        Right Arm Reps
+                    </div>
+                    <div class="result-value" id="right-reps-result">-</div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-plus"></i>
+                        Total Reps
+                    </div>
+                    <div class="result-value" id="total-reps-result">-</div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-dumbbell"></i>
+                        Estimated Weight
+                    </div>
+                    <div class="result-value" id="weight-result">-</div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-clock"></i>
+                        Timer Duration
+                    </div>
+                    <div class="result-value" id="timer-result">-</div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-calendar"></i>
+                        Submission Time
+                    </div>
+                    <div class="result-value" id="submission-time">-</div>
+                </div>
+            </div>
+
+            <div class="actions-card">
+                <h3>🎯 Actions</h3>
+                <div class="action-buttons">
+                    <button onclick="window.location.href='/dumbbell_ui'" class="btn btn-primary">
+                        <i class="fas fa-play"></i>
+                        Start New Session
+                    </button>
+                    <button onclick="loadResults()" class="btn btn-secondary">
+                        <i class="fas fa-refresh"></i>
+                        Refresh Results
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="slider-container">
+            <button class="slider-arrow slider-arrow-left" onclick="showPrevChart()">&#8592;</button>
+            <div class="slider-charts">
+                <div class="slider-chart chart-card responsive-chart" id="chart-slide-0">
+                    <h3>📈 Progressive Overload Tracking</h3>
+                    <div class="responsive-chart-inner">
+                        <canvas id="progressChart" class="responsive-canvas"></canvas>
+                    </div>
+                </div>
+                <div class="slider-chart chart-card responsive-chart" id="chart-slide-1" style="display:none;">
+                    <h3>⚖️ Bilateral Performance Analysis</h3>
+                    <div class="responsive-chart-inner">
+                        <canvas id="bilateralChart" class="responsive-canvas"></canvas>
+                    </div>
+                </div>
+                <div class="slider-chart chart-card responsive-chart" id="chart-slide-2" style="display:none;">
+                    <h3>💪 Left Arm Performance</h3>
+                    <div class="responsive-chart-inner">
+                        <canvas id="leftArmChart" class="responsive-canvas"></canvas>
+                    </div>
+                </div>
+                <div class="slider-chart chart-card responsive-chart" id="chart-slide-3" style="display:none;">
+                    <h3>💪 Right Arm Performance</h3>
+                    <div class="responsive-chart-inner">
+                        <canvas id="rightArmChart" class="responsive-canvas"></canvas>
+                    </div>
+                </div>
+                <div class="slider-chart chart-card responsive-chart" id="chart-slide-4" style="display:none;">
+                    <h3>🤝 Combined Arm Performance</h3>
+                    <div class="responsive-chart-inner">
+                        <canvas id="combinedArmChart" class="responsive-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+            <button class="slider-arrow slider-arrow-right" onclick="showNextChart()">&#8594;</button>
+        </div>
+        <script>
+            let currentChartIndex = 0;
+            function showChartAt(idx) {
+                const total = 5;
+                for (let i = 0; i < total; i++) {
+                    document.getElementById('chart-slide-' + i).style.display = (i === idx) ? '' : 'none';
+                }
+                currentChartIndex = idx;
+            }
+            function showPrevChart() {
+                let idx = currentChartIndex - 1;
+                if (idx < 0) idx = 4;
+                showChartAt(idx);
+            }
+            function showNextChart() {
+                let idx = currentChartIndex + 1;
+                if (idx > 4) idx = 0;
+                showChartAt(idx);
+            }
+        </script>
+        <style>
+            .slider-container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 40px 0 30px 0;
+                width: 100%;
+                gap: 18px;
+            }
+
+            .slider-charts {
+                width: 100%;
+                max-width: 1200px;
+                min-width: 320px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+            }
+
+            .slider-chart {
+                width: 100%;
+                max-width: 1100px;
+                min-width: 320px;
+                transition: opacity 0.3s;
+            }
+
+            .slider-arrow {
+                font-size: 2.5rem;
+                background: #1e293b;
+                color: #fff;
+                border: none;
+                border-radius: 50%;
+                width: 56px;
+                height: 56px;
+                cursor: pointer;
+                box-shadow: 0 2px 12px rgba(30, 41, 59, 0.18);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background 0.2s;
+            }
+
+            .slider-arrow:hover {
+                background: #3b82f6;
+                color: #fff;
+            }
+        </style>
+
+        <div id="no-data" class="no-data-message" style="display: none;">
+            <div class="no-data-content">
+                <i class="fas fa-info-circle"></i>
+                <h3>No Results Yet</h3>
+                <p>Complete a dumbbell curl session to see your results here.</p>
+                <button onclick="window.location.href='/dumbbell_ui'" class="btn btn-primary">
+                    Start Your First Session
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let progressChart, bilateralChart, leftArmChart, rightArmChart, combinedArmChart;
+
+
+
+        async function loadResults() {
+            try {
+                // First try to get URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const leftReps = urlParams.get('left_reps');
+                const rightReps = urlParams.get('right_reps');
+                const totalReps = urlParams.get('total_reps');
+                const weight = urlParams.get('weight');
+                const timer = urlParams.get('timer');
+
+                if (leftReps || rightReps || totalReps) {
+                    // Display URL parameters data
+                    document.getElementById('left-reps-result').textContent = leftReps || '0';
+                    document.getElementById('right-reps-result').textContent = rightReps || '0';
+                    document.getElementById('total-reps-result').textContent = totalReps || '0';
+                    document.getElementById('weight-result').textContent = (weight || '0') + ' kg';
+                    document.getElementById('timer-result').textContent = timer || '0:00';
+                    document.getElementById('submission-time').textContent = new Date().toLocaleString();
+
+                    document.querySelector('.results-container').style.display = 'block';
+                    document.getElementById('no-data').style.display = 'none';
+                } else {
+                    // Fetch data from MongoDB API
+                    const response = await fetch('/api/dumbbell_data');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    console.log('Fetched dumbbell data:', data);
+
+                    if (data && data.length > 0) {
+                        const latest = data[0];
+                        document.getElementById('left-reps-result').textContent = latest.left_reps || '0';
+                        document.getElementById('right-reps-result').textContent = latest.right_reps || '0';
+                        document.getElementById('total-reps-result').textContent = latest.total_reps || '0';
+                        document.getElementById('weight-result').textContent = (latest.estimated_weight || '0') + ' kg';
+                        document.getElementById('timer-result').textContent = formatDuration(latest.session_duration || 0);
+                        document.getElementById('submission-time').textContent = new Date(latest.analysis_date || latest.timestamp).toLocaleString();
+
+                        document.querySelector('.results-container').style.display = 'block';
+                        document.getElementById('no-data').style.display = 'none';
+                        renderCharts(data);
+                    } else {
+                        document.querySelector('.results-container').style.display = 'none';
+                        document.getElementById('no-data').style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading results:', error);
+                // Try to load data anyway and show what we can
+                try {
+                    const response = await fetch('/api/dumbbell_data');
+                    const data = await response.json();
+                    if (data && data.length > 0) {
+                        const latest = data[0];
+                        document.getElementById('left-reps-result').textContent = latest.left_reps || '0';
+                        document.getElementById('right-reps-result').textContent = latest.right_reps || '0';
+                        document.getElementById('total-reps-result').textContent = latest.total_reps || '0';
+                        document.getElementById('weight-result').textContent = (latest.estimated_weight || '0') + ' kg';
+                        document.getElementById('timer-result').textContent = formatDuration(latest.session_duration || 0);
+                        document.getElementById('submission-time').textContent = new Date(latest.analysis_date || latest.timestamp).toLocaleString();
+                        document.querySelector('.results-container').style.display = 'block';
+                        document.getElementById('no-data').style.display = 'none';
+                        renderCharts(data);
+                    } else {
+                        throw new Error('No data available');
+                    }
+                } catch (fallbackError) {
+                    console.error('Fallback also failed:', fallbackError);
+                    document.querySelector('.results-container').style.display = 'none';
+                    document.getElementById('no-data').style.display = 'block';
+                }
+            }
+        }
+
+        function renderCharts(data) {
+            console.log('Rendering charts with data:', data);
+            if (!data || data.length === 0) {
+                console.log('No data available for charts');
+                return;
+            }
+
+            const sortedData = data.sort((a, b) => {
+                const dateA = new Date(a.analysis_date || a.timestamp || 0);
+                const dateB = new Date(b.analysis_date || b.timestamp || 0);
+                return dateA - dateB;
+            });
+
+            // Progressive Overload Chart (Multi-Line Time Series)
+            const ctx1 = document.getElementById('progressChart').getContext('2d');
+            if (progressChart) progressChart.destroy();
+
+            progressChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: sortedData.map((d, index) => `Session ${index + 1}`),
+                    datasets: [{
+                        label: 'Weight (kg)',
+                        data: sortedData.map(d => parseFloat(d.estimated_weight) || 0),
+                        borderColor: '#F59E0B',
+                        backgroundColor: 'rgba(245, 158, 11, 0.3)',
+                        borderWidth: 4,
+                        pointBackgroundColor: '#F59E0B',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 3,
+                        pointRadius: 8,
+                        pointHoverRadius: 12,
+                        fill: true,
+                        tension: 0.4,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Total Reps',
+                        data: sortedData.map(d => parseInt(d.total_reps) || 0),
+                        borderColor: '#06B6D4',
+                        backgroundColor: 'rgba(6, 182, 212, 0.2)',
+                        borderWidth: 4,
+                        pointBackgroundColor: '#06B6D4',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 3,
+                        pointRadius: 8,
+                        pointHoverRadius: 12,
+                        fill: false,
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' },
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#F8FAFC',
+                            bodyColor: '#E2E8F0',
+                            borderColor: '#F59E0B',
+                            borderWidth: 2,
+                            cornerRadius: 12,
+                            titleFont: { size: 16, weight: 'bold' },
+                            bodyFont: { size: 14 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Weight (kg)',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                color: '#E2E8F0',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.3)',
+                                lineWidth: 1
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Total Reps',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                color: '#E2E8F0',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: { drawOnChartArea: false }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Session',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                color: '#E2E8F0',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.2)',
+                                lineWidth: 1
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Bilateral Performance Chart (Radar Chart)
+            const ctx2 = document.getElementById('bilateralChart').getContext('2d');
+            if (bilateralChart) bilateralChart.destroy();
+
+            const latest = sortedData[sortedData.length - 1];
+            const leftReps = parseInt(latest.left_reps) || 0;
+            const rightReps = parseInt(latest.right_reps) || 0;
+            const totalReps = parseInt(latest.total_reps) || 0;
+            const weight = parseFloat(latest.estimated_weight) || 0;
+            const duration = parseFloat(latest.session_duration) || 0;
+
+            // Calculate balance and performance metrics
+            const balance = leftReps && rightReps ? Math.min(leftReps, rightReps) / Math.max(leftReps, rightReps) * 10 : 5;
+            const intensity = Math.min(10, weight / 2.5); // Scale weight to 0-10
+            const endurance = Math.min(10, totalReps / 2); // Scale reps to 0-10
+            const efficiency = duration > 0 ? Math.min(10, totalReps / (duration / 60)) : 5; // Reps per minute
+
+            bilateralChart = new Chart(ctx2, {
+                type: 'radar',
+                data: {
+                    labels: ['Left Reps', 'Right Reps', 'Balance', 'Intensity', 'Endurance', 'Efficiency'],
+                    datasets: [{
+                        label: 'Current Session',
+                        data: [leftReps, rightReps, balance, intensity, endurance, efficiency],
+                        backgroundColor: 'rgba(139, 92, 246, 0.4)',
+                        borderColor: '#8B5CF6',
+                        borderWidth: 4,
+                        pointBackgroundColor: '#8B5CF6',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 3,
+                        pointRadius: 8,
+                        pointHoverRadius: 12
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' },
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#F8FAFC',
+                            bodyColor: '#E2E8F0',
+                            borderColor: '#8B5CF6',
+                            borderWidth: 2,
+                            cornerRadius: 12,
+                            titleFont: { size: 16, weight: 'bold' },
+                            bodyFont: { size: 14 }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            angleLines: {
+                                color: 'rgba(148, 163, 184, 0.4)',
+                                lineWidth: 2
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.3)',
+                                lineWidth: 2
+                            },
+                            pointLabels: {
+                                color: '#F8FAFC',
+                                font: { size: 13, weight: 'bold' }
+                            },
+                            ticks: {
+                                color: '#E2E8F0',
+                                font: { size: 11, weight: 'bold' },
+                                backdropColor: 'rgba(15, 23, 42, 0.8)',
+                                backdropPadding: 4
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Left Arm Performance Chart
+            const ctx3 = document.getElementById('leftArmChart').getContext('2d');
+            if (leftArmChart) leftArmChart.destroy();
+
+            leftArmChart = new Chart(ctx3, {
+                type: 'line',
+                data: {
+                    labels: sortedData.map((d, index) => `Session ${index + 1}`),
+                    datasets: [{
+                        label: 'Left Arm Reps',
+                        data: sortedData.map(d => parseInt(d.left_reps) || 0),
+                        borderColor: '#EF4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.3)',
+                        borderWidth: 4,
+                        pointBackgroundColor: '#EF4444',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 3,
+                        pointRadius: 8,
+                        pointHoverRadius: 12,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' },
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#F8FAFC',
+                            bodyColor: '#E2E8F0',
+                            borderColor: '#EF4444',
+                            borderWidth: 2,
+                            cornerRadius: 12,
+                            titleFont: { size: 16, weight: 'bold' },
+                            bodyFont: { size: 14 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Left Arm Reps',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                color: '#E2E8F0',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.3)',
+                                lineWidth: 1
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Session',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                color: '#E2E8F0',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.2)',
+                                lineWidth: 1
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Right Arm Performance Chart
+            const ctx4 = document.getElementById('rightArmChart').getContext('2d');
+            if (rightArmChart) rightArmChart.destroy();
+
+            rightArmChart = new Chart(ctx4, {
+                type: 'line',
+                data: {
+                    labels: sortedData.map((d, index) => `Session ${index + 1}`),
+                    datasets: [{
+                        label: 'Right Arm Reps',
+                        data: sortedData.map(d => parseInt(d.right_reps) || 0),
+                        borderColor: '#22C55E',
+                        backgroundColor: 'rgba(34, 197, 94, 0.3)',
+                        borderWidth: 4,
+                        pointBackgroundColor: '#22C55E',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 3,
+                        pointRadius: 8,
+                        pointHoverRadius: 12,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' },
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#F8FAFC',
+                            bodyColor: '#E2E8F0',
+                            borderColor: '#22C55E',
+                            borderWidth: 2,
+                            cornerRadius: 12,
+                            titleFont: { size: 16, weight: 'bold' },
+                            bodyFont: { size: 14 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Right Arm Reps',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                color: '#E2E8F0',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.3)',
+                                lineWidth: 1
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Session',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                color: '#E2E8F0',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.2)',
+                                lineWidth: 1
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Combined Arm Performance Chart
+            const ctx5 = document.getElementById('combinedArmChart').getContext('2d');
+            if (combinedArmChart) combinedArmChart.destroy();
+
+            combinedArmChart = new Chart(ctx5, {
+                type: 'line',
+                data: {
+                    labels: sortedData.map((d, index) => `Session ${index + 1}`),
+                    datasets: [{
+                        label: 'Left Arm Reps',
+                        data: sortedData.map(d => parseInt(d.left_reps) || 0),
+                        borderColor: '#EF4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                        borderWidth: 4,
+                        pointBackgroundColor: '#EF4444',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 3,
+                        pointRadius: 8,
+                        pointHoverRadius: 12,
+                        fill: false,
+                        tension: 0.4,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Right Arm Reps',
+                        data: sortedData.map(d => parseInt(d.right_reps) || 0),
+                        borderColor: '#22C55E',
+                        backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                        borderWidth: 4,
+                        pointBackgroundColor: '#22C55E',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 3,
+                        pointRadius: 8,
+                        pointHoverRadius: 12,
+                        fill: false,
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' },
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#F8FAFC',
+                            bodyColor: '#E2E8F0',
+                            borderColor: '#EF4444',
+                            borderWidth: 2,
+                            cornerRadius: 12,
+                            titleFont: { size: 16, weight: 'bold' },
+                            bodyFont: { size: 14 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Left Arm Reps',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                color: '#E2E8F0',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.3)',
+                                lineWidth: 1
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Right Arm Reps',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                color: '#E2E8F0',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: { drawOnChartArea: false }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Session',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                color: '#E2E8F0',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.2)',
+                                lineWidth: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function formatDuration(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadResults();
+            showChartAt(0);
+        });
+    </script>
+</body>
+
+</html>

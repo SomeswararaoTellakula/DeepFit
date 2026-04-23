@@ -1,0 +1,14 @@
+venv/
+venv39/
+__pycache__/
+*.pyc
+.DS_Store
+.gemini/
+*.mp4
+*.jpg
+*.png
+uploads/
+validation_results/
+*.pt
+*.pkl
+models/

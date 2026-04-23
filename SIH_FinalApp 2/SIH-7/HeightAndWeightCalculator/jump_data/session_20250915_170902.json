@@ -1,0 +1,42 @@
+{
+  "session_start": "2025-09-15T17:09:02.600398",
+  "total_jumps": 7,
+  "max_height": 158.66666666666666,
+  "jumps": [
+    {
+      "timestamp": "2025-09-15T17:09:12.259749",
+      "height_cm": 49.0,
+      "jump_number": 1
+    },
+    {
+      "timestamp": "2025-09-15T17:09:12.420903",
+      "height_cm": 91.3,
+      "jump_number": 2
+    },
+    {
+      "timestamp": "2025-09-15T17:09:12.673937",
+      "height_cm": 100.7,
+      "jump_number": 3
+    },
+    {
+      "timestamp": "2025-09-15T17:09:13.775032",
+      "height_cm": 38.7,
+      "jump_number": 4
+    },
+    {
+      "timestamp": "2025-09-15T17:09:14.275775",
+      "height_cm": 40.3,
+      "jump_number": 5
+    },
+    {
+      "timestamp": "2025-09-15T17:09:17.505263",
+      "height_cm": 158.7,
+      "jump_number": 6
+    },
+    {
+      "timestamp": "2025-09-15T17:09:17.713898",
+      "height_cm": 158.7,
+      "jump_number": 7
+    }
+  ]
+}

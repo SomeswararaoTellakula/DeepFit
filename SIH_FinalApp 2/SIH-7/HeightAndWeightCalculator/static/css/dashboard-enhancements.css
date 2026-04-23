@@ -1,0 +1,132 @@
+/* Additional enhancements for performance dashboard */
+
+.result-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.result-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+    transform: rotate(45deg);
+    transition: all 0.6s ease;
+    opacity: 0;
+}
+
+.result-card:hover::after {
+    animation: shimmer 0.6s ease-in-out;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+        opacity: 0;
+    }
+}
+
+.card-icon {
+    position: relative;
+    z-index: 2;
+}
+
+.card-icon::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    border-radius: 50%;
+    background: inherit;
+    opacity: 0.2;
+    transform: scale(0);
+    transition: transform 0.3s ease;
+}
+
+.result-card:hover .card-icon::before {
+    transform: scale(1);
+}
+
+/* Floating animation for icons */
+.card-icon i {
+    animation: float-icon 3s ease-in-out infinite;
+}
+
+@keyframes float-icon {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+}
+
+/* Staggered animation delays */
+.height-card .card-icon i { animation-delay: 0s; }
+.weight-card .card-icon i { animation-delay: 0.5s; }
+.bmi-card .card-icon i { animation-delay: 1s; }
+.confidence-card .card-icon i { animation-delay: 1.5s; }
+
+/* Enhanced loading animation */
+.spinner {
+    background: conic-gradient(from 0deg, #4facfe, #00f2fe, #4facfe);
+    border-radius: 50%;
+    position: relative;
+}
+
+.spinner::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
+    background: white;
+    border-radius: 50%;
+}
+
+/* Success checkmark animation */
+.success-checkmark {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #28a745;
+    position: relative;
+    margin: 0 auto 20px;
+}
+
+.success-checkmark::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 30px;
+    font-weight: bold;
+}
+
+/* Responsive enhancements */
+@media (max-width: 576px) {
+    .card-footer .d-flex {
+        flex-direction: column;
+    }
+    
+    .card-footer .btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .results-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}

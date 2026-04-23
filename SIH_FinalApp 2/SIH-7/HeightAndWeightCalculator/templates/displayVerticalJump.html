@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepFit - Vertical Jump Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='situp-modern.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            /* Title stays at the top */
+            padding: 20px;
+        }
+
+        .chart-card h3 {
+            margin-bottom: 15px;
+            /* Space between heading and chart */
+            text-align: center;
+            width: 100%;
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        .responsive-chart-inner {
+            width: 100%;
+            height: 400px;
+            /* Adjust as needed */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 style="color: #06b6d4;">🏀 Vertical Jump Results</h1>
+                    <p>Your latest jump performance</p>
+                </div>
+                <a href="/" class="btn btn-secondary" style="text-decoration: none;">← Back to Home</a>
+            </div>
+        </header>
+
+        <div class="results-container">
+            <div class="results-card">
+                <h3>📊 Latest Session</h3>
+
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-arrow-up"></i>
+                        Max Height
+                    </div>
+                    <div class="result-value" id="max-height-result">-</div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-chart-line"></i>
+                        Average Height
+                    </div>
+                    <div class="result-value" id="avg-height-result">-</div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-repeat"></i>
+                        Total Jumps
+                    </div>
+                    <div class="result-value" id="total-jumps-result">-</div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-calendar"></i>
+                        Session Start
+                    </div>
+                    <div class="result-value" id="session-start">-</div>
+                </div>
+            </div>
+
+            <div class="actions-card">
+                <h3>🎯 Actions</h3>
+                <div class="action-buttons">
+                    <button onclick="startNewSession()" class="btn btn-primary">
+                        <i class="fas fa-play"></i>
+                        Start New Session
+                    </button>
+                    <button onclick="loadResults()" class="btn btn-secondary">
+                        <i class="fas fa-refresh"></i>
+                        Refresh Results
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-card">
+                <h3>📈 Jump Height Progression</h3>
+                <canvas id="progressionChart" width="400" height="200"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>🎯 Individual Jump Performance</h3>
+                <canvas id="individualChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-card">
+                <h3>⚖️ Body Angle Analysis</h3>
+                <canvas id="bodyAngleChart" width="400" height="200"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>🦵 Knee Angle Comparison</h3>
+                <canvas id="kneeAngleChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+
+
+        <div id="no-data" class="no-data-message" style="display: none;">
+            <div class="no-data-content">
+                <i class="fas fa-info-circle"></i>
+                <h3>No Results Yet</h3>
+                <p>Complete a vertical jump session to see your results here.</p>
+                <button onclick="startNewSession()" class="btn btn-primary">
+                    Start Your First Session
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let progressionChart, individualChart, bodyAngleChart, kneeAngleChart;
+
+        function startNewSession() {
+            if (confirm('Start a new vertical jump session?')) {
+                window.location.href = '/vertical_jump';
+            }
+        }
+
+        async function loadResults() {
+            try {
+                const response = await fetch('/api/vertical_jump_data');
+                const data = await response.json();
+
+                if (data && data.length > 0) {
+                    const latest = data[0];
+
+                    document.getElementById('max-height-result').textContent = latest.max_height.toFixed(2) + ' cm';
+                    document.getElementById('avg-height-result').textContent = latest.average_height.toFixed(2) + ' cm';
+                    document.getElementById('total-jumps-result').textContent = latest.total_jumps;
+                    document.getElementById('session-start').textContent = new Date(latest.session_start).toLocaleString();
+
+                    document.querySelector('.results-container').style.display = 'block';
+                    document.getElementById('no-data').style.display = 'none';
+
+                    renderCharts(data);
+                } else {
+                    document.querySelector('.results-container').style.display = 'none';
+                    document.getElementById('no-data').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading results:', error);
+                document.querySelector('.results-container').style.display = 'none';
+                document.getElementById('no-data').style.display = 'block';
+            }
+        }
+
+
+
+        function renderCharts(data) {
+            const sortedData = data.sort((a, b) => new Date(a.session_start) - new Date(b.session_start));
+
+            // Jump Height Progression Chart
+            const ctx1 = document.getElementById('progressionChart').getContext('2d');
+            if (progressionChart) progressionChart.destroy();
+
+            progressionChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: sortedData.map((d, i) => `Session ${i + 1}`),
+                    datasets: [{
+                        label: 'Max Height (cm)',
+                        data: sortedData.map(d => d.max_height),
+                        borderColor: '#EF4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.3)',
+                        borderWidth: 4,
+                        pointBackgroundColor: '#EF4444',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 3,
+                        pointRadius: 8,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'Average Height (cm)',
+                        data: sortedData.map(d => d.average_height),
+                        borderColor: '#22C55E',
+                        backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                        borderWidth: 4,
+                        pointBackgroundColor: '#22C55E',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 3,
+                        pointRadius: 8,
+                        fill: false,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Height (cm)',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: { color: '#E2E8F0', font: { size: 12, weight: 'bold' } },
+                            grid: { color: 'rgba(148, 163, 184, 0.3)' }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Sessions',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: { color: '#E2E8F0', font: { size: 12, weight: 'bold' } },
+                            grid: { color: 'rgba(148, 163, 184, 0.2)' }
+                        }
+                    }
+                }
+            });
+
+            // Individual Jump Performance Chart - All Sessions
+            const ctx2 = document.getElementById('individualChart').getContext('2d');
+            if (individualChart) individualChart.destroy();
+
+            const allJumps = [];
+            const jumpLabels = [];
+            sortedData.forEach((session, sessionIndex) => {
+                session.jumps.forEach(jump => {
+                    allJumps.push(jump.height_cm);
+                    jumpLabels.push(`S${sessionIndex + 1}-J${jump.jump_number}`);
+                });
+            });
+
+            individualChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: jumpLabels,
+                    datasets: [{
+                        label: 'Height (cm)',
+                        data: allJumps,
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                        borderColor: '#3B82F6',
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#F8FAFC', font: { size: 14, weight: 'bold' } }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Height (cm)', color: '#F8FAFC', font: { size: 14, weight: 'bold' } },
+                            ticks: { color: '#E2E8F0', font: { size: 12, weight: 'bold' } },
+                            grid: { color: 'rgba(148, 163, 184, 0.3)' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Individual Jumps', color: '#F8FAFC', font: { size: 14, weight: 'bold' } },
+                            ticks: { color: '#E2E8F0', font: { size: 12, weight: 'bold' } },
+                            grid: { color: 'rgba(148, 163, 184, 0.2)' }
+                        }
+                    }
+                }
+            });
+
+            // Body Angle Analysis Chart - All Sessions
+            const ctx3 = document.getElementById('bodyAngleChart').getContext('2d');
+            if (bodyAngleChart) bodyAngleChart.destroy();
+
+            const allBodyAngles = [];
+            sortedData.forEach((session, sessionIndex) => {
+                session.jumps.forEach(jump => {
+                    allBodyAngles.push(jump.body_angle);
+                });
+            });
+
+            bodyAngleChart = new Chart(ctx3, {
+                type: 'line',
+                data: {
+                    labels: jumpLabels,
+                    datasets: [{
+                        label: 'Body Angle (degrees)',
+                        data: allBodyAngles,
+                        borderColor: '#F59E0B',
+                        backgroundColor: 'rgba(245, 158, 11, 0.3)',
+                        borderWidth: 4,
+                        pointBackgroundColor: '#F59E0B',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 3,
+                        pointRadius: 8,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#F8FAFC', font: { size: 14, weight: 'bold' } }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: { display: true, text: 'Body Angle (degrees)', color: '#F8FAFC', font: { size: 14, weight: 'bold' } },
+                            ticks: { color: '#E2E8F0', font: { size: 12, weight: 'bold' } },
+                            grid: { color: 'rgba(148, 163, 184, 0.3)' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Jump Number', color: '#F8FAFC', font: { size: 14, weight: 'bold' } },
+                            ticks: { color: '#E2E8F0', font: { size: 12, weight: 'bold' } },
+                            grid: { color: 'rgba(148, 163, 184, 0.2)' }
+                        }
+                    }
+                }
+            });
+
+            // Knee Angle Comparison Chart - All Sessions
+            const ctx4 = document.getElementById('kneeAngleChart').getContext('2d');
+            if (kneeAngleChart) kneeAngleChart.destroy();
+
+            const allLeftKneeAngles = [];
+            const allRightKneeAngles = [];
+            sortedData.forEach((session, sessionIndex) => {
+                session.jumps.forEach(jump => {
+                    allLeftKneeAngles.push(jump.knee_angles.left);
+                    allRightKneeAngles.push(jump.knee_angles.right);
+                });
+            });
+
+            kneeAngleChart = new Chart(ctx4, {
+                type: 'line',
+                data: {
+                    labels: jumpLabels,
+                    datasets: [{
+                        label: 'Left Knee Angle',
+                        data: allLeftKneeAngles,
+                        borderColor: '#8B5CF6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                        borderWidth: 4,
+                        pointBackgroundColor: '#8B5CF6',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 3,
+                        pointRadius: 8,
+                        fill: false,
+                        tension: 0.4
+                    }, {
+                        label: 'Right Knee Angle',
+                        data: allRightKneeAngles,
+                        borderColor: '#EC4899',
+                        backgroundColor: 'rgba(236, 72, 153, 0.2)',
+                        borderWidth: 4,
+                        pointBackgroundColor: '#EC4899',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 3,
+                        pointRadius: 8,
+                        fill: false,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#F8FAFC', font: { size: 14, weight: 'bold' } }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: { display: true, text: 'Knee Angle (degrees)', color: '#F8FAFC', font: { size: 14, weight: 'bold' } },
+                            ticks: { color: '#E2E8F0', font: { size: 12, weight: 'bold' } },
+                            grid: { color: 'rgba(148, 163, 184, 0.3)' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Jump Number', color: '#F8FAFC', font: { size: 14, weight: 'bold' } },
+                            ticks: { color: '#E2E8F0', font: { size: 12, weight: 'bold' } },
+                            grid: { color: 'rgba(148, 163, 184, 0.2)' }
+                        }
+                    }
+                }
+            });
+
+
+        }
+
+        document.addEventListener('DOMContentLoaded', loadResults);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,176 @@
+/* Common styles for exercise pages */
+:root {
+    --container-max-width: 1200px;
+    --video-container-min-height: 400px;
+    --video-container-max-height: 600px;
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+}
+
+/* Main container layout */
+.container {
+    width: 100%;
+    max-width: var(--container-max-width);
+    margin: 0 auto;
+    padding: var(--spacing-md);
+}
+
+/* Video container with fixed aspect ratio */
+.video-container,
+.video-container-large {
+    position: relative;
+    width: 100%;
+    background: #000;
+    border-radius: 15px;
+    overflow: hidden;
+    margin-bottom: var(--spacing-lg);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Create 16:9 aspect ratio */
+.video-container::before,
+.video-container-large::before {
+    content: "";
+    display: block;
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+}
+
+/* Video feed and placeholder positioning */
+.video-container img,
+.video-container-large img,
+.video-container video,
+.video-container-large video,
+.video-container .video-placeholder,
+.video-container-large .video-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Placeholder styles */
+.video-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
+    color: #fff;
+    text-align: center;
+}
+
+.placeholder-content {
+    padding: var(--spacing-lg);
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+}
+
+/* Controls section */
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
+}
+
+.controls button {
+    flex: 1;
+    min-width: 140px;
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: 1rem;
+}
+
+/* Stats section layout */
+.stats-section {
+    display: grid;
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+}
+
+/* Cards styling */
+.stats-card,
+.timer-card,
+.instructions-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: var(--spacing-lg);
+    backdrop-filter: blur(10px);
+}
+
+/* Responsive layout */
+@media (min-width: 768px) {
+    .stats-section {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+
+    .container {
+        padding: var(--spacing-lg);
+    }
+}
+
+@media (max-width: 767px) {
+    .container {
+        padding: var(--spacing-sm);
+    }
+
+    .video-container::before,
+    .video-container-large::before {
+        padding-top: 75%; /* 4:3 Aspect Ratio for mobile */
+    }
+
+    .controls {
+        flex-direction: column;
+    }
+
+    .controls button {
+        width: 100%;
+    }
+
+    .stats-card,
+    .timer-card,
+    .instructions-card {
+        margin-bottom: var(--spacing-md);
+        padding: var(--spacing-md);
+    }
+}
+
+/* Main content grid layout */
+.main-content {
+    display: grid;
+    gap: var(--spacing-lg);
+}
+
+@media (min-width: 1024px) {
+    .main-content {
+        grid-template-columns: 3fr 2fr;
+    }
+
+    .video-section {
+        position: sticky;
+        top: var(--spacing-lg);
+    }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
+}

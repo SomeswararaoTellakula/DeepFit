@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+
+{% block title %}Blind Person Registration{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes gradientFlow {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .registration-container {
+        min-height: 100vh;
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: slideInUp 0.8s ease-out;
+    }
+    
+    .registration-card {
+        background: linear-gradient(145deg, rgba(0, 0, 0, 0.85), rgba(0, 50, 100, 0.85));
+        backdrop-filter: blur(25px);
+        border: 2px solid rgba(0, 170, 255, 0.4);
+        border-radius: 25px;
+        padding: 3rem;
+        max-width: 650px;
+        width: 100%;
+        box-shadow: 0 15px 50px rgba(0, 170, 255, 0.3),
+                    0 0 100px rgba(0, 170, 255, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .registration-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(0, 170, 255, 0.1) 0%, transparent 70%);
+        animation: pulse 4s ease-in-out infinite;
+    }
+    
+    .form-title {
+        text-align: center;
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 2.5rem;
+        background: linear-gradient(135deg, #00aaff, #00ff88, #00aaff);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: gradientFlow 3s ease infinite;
+        text-shadow: 0 5px 20px rgba(0, 170, 255, 0.5);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .form-title i {
+        display: inline-block;
+        animation: pulse 2s ease-in-out infinite;
+    }
+    
+    .form-group {
+        margin-bottom: 1.8rem;
+        position: relative;
+        z-index: 1;
+        animation: slideInUp 0.6s ease-out backwards;
+    }
+    
+    .form-group:nth-child(1) { animation-delay: 0.1s; }
+    .form-group:nth-child(2) { animation-delay: 0.2s; }
+    .form-group:nth-child(3) { animation-delay: 0.3s; }
+    .form-group:nth-child(4) { animation-delay: 0.4s; }
+    .form-group:nth-child(5) { animation-delay: 0.5s; }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.7rem;
+        color: #fff;
+        font-weight: 600;
+        font-size: 1.05rem;
+        transition: all 0.3s;
+    }
+    
+    .form-label i {
+        color: #00aaff;
+        margin-right: 0.5rem;
+        transition: transform 0.3s;
+    }
+    
+    .form-group:hover .form-label i {
+        transform: scale(1.2) rotate(5deg);
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.08);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        color: #fff;
+        font-size: 1rem;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #00aaff;
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 0 0 4px rgba(0, 170, 255, 0.2),
+                    0 5px 20px rgba(0, 170, 255, 0.3);
+        transform: translateY(-2px);
+    }
+    
+    .form-control:hover {
+        border-color: rgba(0, 170, 255, 0.5);
+    }
+    
+    .camera-preview {
+        width: 100%;
+        border-radius: 15px;
+        margin-top: 1rem;
+        background: #000;
+        border: 2px solid rgba(0, 170, 255, 0.3);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        transition: all 0.3s;
+    }
+    
+    .camera-preview:hover {
+        border-color: rgba(0, 170, 255, 0.6);
+        box-shadow: 0 8px 30px rgba(0, 170, 255, 0.4);
+    }
+    
+    .btn-capture {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, #00aaff, #0066cc);
+        border: none;
+        border-radius: 12px;
+        color: #fff;
+        font-weight: 700;
+        font-size: 1.05rem;
+        cursor: pointer;
+        margin-top: 1rem;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 5px 20px rgba(0, 170, 255, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-capture::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+    
+    .btn-capture:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+    
+    .btn-capture:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0, 170, 255, 0.5);
+    }
+    
+    .btn-capture:active {
+        transform: translateY(-1px);
+    }
+    
+    .btn-submit {
+        width: 100%;
+        padding: 1.2rem;
+        background: linear-gradient(135deg, #00ff88, #00cc66);
+        border: none;
+        border-radius: 12px;
+        color: #000;
+        font-weight: 800;
+        font-size: 1.2rem;
+        cursor: pointer;
+        margin-top: 2rem;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 5px 25px rgba(0, 255, 136, 0.4);
+        position: relative;
+        overflow: hidden;
+        animation: slideInUp 0.6s ease-out 0.6s backwards;
+    }
+    
+    .btn-submit::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.4);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+    
+    .btn-submit:hover::before {
+        width: 400px;
+        height: 400px;
+    }
+    
+    .btn-submit:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 15px 40px rgba(0, 255, 136, 0.6);
+    }
+    
+    .btn-submit:active {
+        transform: translateY(-2px) scale(1.01);
+    }
+    
+    .alert {
+        animation: slideInUp 0.5s ease-out;
+        border-radius: 12px;
+        padding: 1.2rem;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+    }
+    
+    .alert-danger {
+        background: linear-gradient(135deg, rgba(255, 0, 0, 0.2), rgba(200, 0, 0, 0.2));
+        border: 2px solid #ff0000;
+        color: #ff6666;
+        box-shadow: 0 5px 20px rgba(255, 0, 0, 0.3);
+    }
+    
+    @media (max-width: 768px) {
+        .registration-card {
+            padding: 2rem;
+        }
+        
+        .form-title {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="registration-container">
+    <div class="registration-card">
+        <h2 class="form-title"><i class="fas fa-user-plus"></i> Blind Person Registration</h2>
+        
+        {% if error %}
+        <div class="alert alert-danger" style="background: rgba(255, 0, 0, 0.2); border: 1px solid #ff0000; color: #ff6666; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <i class="fas fa-exclamation-triangle"></i> {{ error }}
+        </div>
+        {% endif %}
+        
+        <form id="blindRegistrationForm" method="POST" action="{{ url_for('blind_registration') }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <label class="form-label"><i class="fas fa-user"></i> Name</label>
+                <input type="text" name="name" id="name" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label"><i class="fas fa-birthday-cake"></i> Age</label>
+                <input type="number" name="age" id="age" class="form-control" min="1" max="120" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label"><i class="fas fa-venus-mars"></i> Gender</label>
+                <select name="gender" id="gender" class="form-control" required>
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label"><i class="fas fa-file-upload"></i> Upload Disability Certificate</label>
+                <input type="file" name="certificate" id="certificate" class="form-control" accept="image/*,application/pdf" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label"><i class="fas fa-camera"></i> Capture Photo</label>
+                <video id="video" class="camera-preview" autoplay playsinline></video>
+                <canvas id="canvas" style="display: none;"></canvas>
+                <img id="photo" class="camera-preview" style="display: none;">
+                <input type="hidden" name="photo_data" id="photoData">
+                <button type="button" class="btn-capture" id="captureBtn">
+                    <i class="fas fa-camera"></i> Take Photo
+                </button>
+            </div>
+            
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <i class="fas fa-check-circle"></i> Create & Start Assessment
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const photo = document.getElementById('photo');
+    const captureBtn = document.getElementById('captureBtn');
+    const photoData = document.getElementById('photoData');
+    const form = document.getElementById('blindRegistrationForm');
+    let stream;
+    let photoTaken = false;
+
+    async function startCamera() {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+        } catch (err) {
+            console.error('Camera error:', err);
+            alert('Camera access denied. Please enable camera permissions.');
+        }
+    }
+
+    captureBtn.addEventListener('click', function() {
+        if (video.style.display !== 'none') {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            const imageData = canvas.toDataURL('image/jpeg');
+            photo.src = imageData;
+            photoData.value = imageData;
+            video.style.display = 'none';
+            photo.style.display = 'block';
+            captureBtn.innerHTML = '<i class="fas fa-redo"></i> Retake Photo';
+            photoTaken = true;
+        } else {
+            video.style.display = 'block';
+            photo.style.display = 'none';
+            captureBtn.innerHTML = '<i class="fas fa-camera"></i> Take Photo';
+            photoTaken = false;
+        }
+    });
+
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        if (!photoTaken || !photoData.value) {
+            e.preventDefault();
+            alert('Please capture your photo before submitting.');
+            return false;
+        }
+        
+        // Show loading state
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    });
+
+    window.addEventListener('load', startCamera);
+    window.addEventListener('beforeunload', () => {
+        if (stream) stream.getTracks().forEach(track => track.stop());
+    });
+</script>
+{% endblock %}

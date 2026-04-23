@@ -1,0 +1,1145 @@
+{% extends "base.html" %}
+
+{% block title %}Blind Person Assessment Test{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+    
+    .assessment-container {
+        min-height: 100vh;
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.3s;
+    }
+    
+    .assessment-container.face-not-visible {
+        background-color: rgba(255, 0, 0, 0.3);
+        animation: pulse-red 1s infinite;
+    }
+    
+    @keyframes pulse-red {
+        0%, 100% { background-color: rgba(255, 0, 0, 0.3); }
+        50% { background-color: rgba(255, 0, 0, 0.6); }
+    }
+    
+    .assessment-card {
+        background: rgba(0, 0, 0, 0.9);
+        border: 2px solid rgba(0, 170, 255, 0.5);
+        border-radius: 20px;
+        padding: 3rem;
+        max-width: 900px;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .assessment-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #00aaff;
+        margin-bottom: 2rem;
+    }
+    
+    .camera-feed {
+        width: 100%;
+        max-width: 640px;
+        height: 480px;
+        border-radius: 10px;
+        margin: 2rem auto;
+        display: block;
+        border: 3px solid #00aaff;
+    }
+    
+    .test-status {
+        font-size: 1.8rem;
+        color: #fff;
+        margin: 2rem 0;
+        padding: 1.5rem;
+        background: rgba(0, 170, 255, 0.2);
+        border-radius: 10px;
+        font-weight: 600;
+    }
+    
+    .timer-display {
+        font-size: 4rem;
+        color: #00ff88;
+        margin: 2rem 0;
+        padding: 2rem;
+        background: rgba(0, 255, 136, 0.2);
+        border-radius: 15px;
+        font-weight: 700;
+        border: 3px solid #00ff88;
+    }
+    
+    .timer-display.warning {
+        color: #ffaa00;
+        border-color: #ffaa00;
+        animation: pulse-timer 0.5s infinite;
+    }
+    
+    .timer-display.danger {
+        color: #ff0000;
+        border-color: #ff0000;
+        animation: pulse-timer 0.3s infinite;
+    }
+    
+    @keyframes pulse-timer {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .question-display {
+        font-size: 1.5rem;
+        color: #00ff88;
+        margin: 1.5rem 0;
+        padding: 2rem;
+        background: rgba(0, 255, 136, 0.1);
+        border-radius: 10px;
+        min-height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .response-indicator {
+        font-size: 1.3rem;
+        color: #ffaa00;
+        margin: 1rem 0;
+        padding: 1.5rem;
+        background: rgba(255, 170, 0, 0.1);
+        border-radius: 10px;
+        min-height: 60px;
+    }
+    
+    .user-response-display {
+        font-size: 1.4rem;
+        color: #00aaff;
+        margin: 1rem 0;
+        padding: 1.5rem;
+        background: rgba(0, 170, 255, 0.2);
+        border-radius: 10px;
+        border: 2px solid #00aaff;
+        min-height: 70px;
+        font-weight: 600;
+    }
+    
+    .response-status {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 700;
+        margin-left: 1rem;
+    }
+    
+    .response-status.correct {
+        background: rgba(0, 255, 136, 0.3);
+        color: #00ff88;
+        border: 2px solid #00ff88;
+    }
+    
+    .response-status.incorrect {
+        background: rgba(255, 107, 107, 0.3);
+        color: #ff6b6b;
+        border: 2px solid #ff6b6b;
+    }
+    
+    .correct-answer {
+        font-size: 1.2rem;
+        color: #00aaff;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: rgba(0, 170, 255, 0.2);
+        border-radius: 10px;
+        font-weight: 600;
+    }
+    
+    .score-display {
+        font-size: 2rem;
+        color: #00ff88;
+        margin: 1rem 0;
+        padding: 1.5rem;
+        background: rgba(0, 255, 136, 0.2);
+        border-radius: 10px;
+        font-weight: 700;
+    }
+    
+    .progress-bar {
+        width: 100%;
+        height: 30px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        overflow: hidden;
+        margin: 2rem 0;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #00aaff, #00ff88);
+        transition: width 0.5s;
+    }
+    
+    .face-warning {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 0, 0, 0.95);
+        color: white;
+        padding: 3rem;
+        border-radius: 20px;
+        font-size: 2rem;
+        font-weight: 700;
+        z-index: 1000;
+        display: none;
+        text-align: center;
+        border: 5px solid #ff0000;
+        box-shadow: 0 0 50px rgba(255, 0, 0, 0.8);
+    }
+    
+    .face-warning.show {
+        display: block;
+        animation: shake 0.5s infinite;
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+        25% { transform: translate(-50%, -50%) rotate(-2deg); }
+        75% { transform: translate(-50%, -50%) rotate(2deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="assessment-container" id="assessmentContainer">
+    <div class="assessment-card">
+        <h1 class="assessment-title">Assessment Test</h1>
+        
+        <canvas id="cameraCanvas" class="camera-feed"></canvas>
+        
+        <div class="test-status" id="testStatus">Initializing...</div>
+        
+        <div class="timer-display" id="timerDisplay" style="display: none;">10</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+        </div>
+        
+        <div class="score-display" id="scoreDisplay">Test 1 Score: 0/3</div>
+        
+        <div class="correct-answer" id="correctAnswer" style="display: none;"></div>
+        
+        <div class="user-response-display" id="userResponseDisplay" style="display: none;">
+            <div style="color: #00aaff; font-size: 1rem; margin-bottom: 0.5rem;">Your Response:</div>
+            <div id="userResponseText" style="font-size: 1.6rem;"></div>
+        </div>
+        
+        <div class="question-display" id="questionDisplay"></div>
+        
+        <div class="response-indicator" id="responseIndicator">Listening...</div>
+    </div>
+</div>
+
+<div class="face-warning" id="faceWarning">
+    <i class="fas fa-exclamation-triangle"></i><br>
+    FACE NOT VISIBLE<br>
+    <small>Please position your face in the camera</small>
+</div>
+
+<video id="videoElement" style="display: none;" autoplay playsinline></video>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4/face_detection.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js"></script>
+
+<script>
+    let recognition;
+    let currentTest = 'intro';
+    let currentQuestion = 0;
+    let testResults = {
+        test1_audioReaction: [],
+        test2_audioQA: [],
+        faceDetectionLogs: []
+    };
+    let test1CorrectAnswers = 0;
+    let test1WrongAnswers = 0;
+    let test2CorrectAnswers = 0;
+    let test2WrongAnswers = 0;
+    let totalTest1Questions = 3;
+    let totalTest2Questions = 5;
+    let timerInterval;
+    let timeRemaining = 10;
+    let testPaused = false;
+    let faceDetected = true;
+    let currentCorrectAnswer = '';
+    let audioContext;
+    let isProcessingQuestion = false;
+    let hasAnswered = false;
+    let audioInProgress = false;
+    let currentUtterance = null;
+    let pausedAudioText = '';
+    let audioQueue = [];
+    let currentAudioIndex = 0;
+    
+    const test1Questions = [
+        { direction: 'left', questionNumber: 1 },
+        { direction: 'right', questionNumber: 2 },
+        { direction: 'left', questionNumber: 3 }
+    ];
+    
+    const test2Questions = [
+        {
+            question: "What skills are required to be a good athlete?",
+            options: [
+                "a) Only physical strength",
+                "b) Only communication skills",
+                "c) Physical fitness, discipline, teamwork, and mental strength",
+                "d) Watching sports regularly"
+            ],
+            correctAnswer: "c"
+        },
+        {
+            question: "What factors can affect sports performance?",
+            options: [
+                "a) Weather, fitness level, diet, and mental state",
+                "b) Only the color of uniform",
+                "c) Only the audience size",
+                "d) Only the type of shoes"
+            ],
+            correctAnswer: "a"
+        },
+        {
+            question: "How do you communicate effectively with your teammates during a match?",
+            options: [
+                "a) By ignoring teammates",
+                "b) By shouting randomly",
+                "c) By using clear signals, calls, and teamwork strategies",
+                "d) By staying silent"
+            ],
+            correctAnswer: "c"
+        },
+        {
+            question: "How do you stay focused and maintain confidence during a competitive match?",
+            options: [
+                "a) By worrying about mistakes",
+                "b) By staying calm, practicing regularly, and positive thinking",
+                "c) By avoiding participation",
+                "d) By depending only on luck"
+            ],
+            correctAnswer: "b"
+        },
+        {
+            question: "Describe a challenging situation you faced during a game and how you handled it.",
+            options: [
+                "a) Ignoring the situation",
+                "b) Giving up immediately",
+                "c) Staying calm, analyzing the situation, and taking appropriate action",
+                "d) Blaming teammates"
+            ],
+            correctAnswer: "c"
+        }
+    ];
+
+    let faceDetection;
+    let camera;
+    const videoElement = document.getElementById('videoElement');
+    const canvasElement = document.getElementById('cameraCanvas');
+    const canvasCtx = canvasElement.getContext('2d');
+
+    async function initializeFaceDetection() {
+        faceDetection = new FaceDetection({
+            locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4/${file}`;
+            }
+        });
+        
+        faceDetection.setOptions({
+            model: 'short',
+            minDetectionConfidence: 0.5
+        });
+        
+        faceDetection.onResults(onFaceDetectionResults);
+        
+        camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await faceDetection.send({image: videoElement});
+            },
+            width: 640,
+            height: 480
+        });
+        
+        camera.start();
+    }
+
+    function onFaceDetectionResults(results) {
+        canvasCtx.save();
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+        
+        const previousFaceDetected = faceDetected;
+        faceDetected = results.detections && results.detections.length > 0;
+        
+        if (results.detections && results.detections.length > 0) {
+            for (const detection of results.detections) {
+                drawRectangle(detection.boundingBox, '#00FF00', 3);
+            }
+        }
+        
+        canvasCtx.restore();
+        
+        if (previousFaceDetected !== faceDetected) {
+            handleFaceDetectionChange(faceDetected);
+        }
+    }
+
+    function drawRectangle(boundingBox, color, lineWidth) {
+        canvasCtx.beginPath();
+        canvasCtx.lineWidth = lineWidth;
+        canvasCtx.strokeStyle = color;
+        canvasCtx.rect(
+            boundingBox.xCenter * canvasElement.width - (boundingBox.width * canvasElement.width) / 2,
+            boundingBox.yCenter * canvasElement.height - (boundingBox.height * canvasElement.height) / 2,
+            boundingBox.width * canvasElement.width,
+            boundingBox.height * canvasElement.height
+        );
+        canvasCtx.stroke();
+    }
+
+    function handleFaceDetectionChange(detected) {
+        const container = document.getElementById('assessmentContainer');
+        const warning = document.getElementById('faceWarning');
+        
+        if (!detected && currentTest !== 'intro' && currentTest !== 'complete' && currentTest !== 'break') {
+            testPaused = true;
+            container.classList.add('face-not-visible');
+            warning.classList.add('show');
+            
+            // Pause timer
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            // Pause audio
+            pauseAudio();
+            
+            testResults.faceDetectionLogs.push({
+                timestamp: new Date().toISOString(),
+                status: 'face_lost',
+                currentTest: currentTest,
+                currentQuestion: currentQuestion,
+                timeRemaining: timeRemaining
+            });
+        } else if (detected && testPaused) {
+            testPaused = false;
+            container.classList.remove('face-not-visible');
+            warning.classList.remove('show');
+            
+            testResults.faceDetectionLogs.push({
+                timestamp: new Date().toISOString(),
+                status: 'face_restored',
+                currentTest: currentTest,
+                currentQuestion: currentQuestion,
+                timeRemaining: timeRemaining
+            });
+            
+            // Resume audio
+            resumeAudio();
+            
+            // Resume timer
+            if ((currentTest === 'test1' || currentTest === 'test2') && timeRemaining > 0 && !hasAnswered) {
+                startTimer();
+            }
+        }
+    }
+
+    function speak(text) {
+        return new Promise((resolve) => {
+            // Cancel any ongoing speech
+            speechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            currentUtterance = utterance;
+            audioInProgress = true;
+            
+            utterance.onend = () => {
+                audioInProgress = false;
+                currentUtterance = null;
+                resolve();
+            };
+            
+            utterance.onerror = () => {
+                audioInProgress = false;
+                currentUtterance = null;
+                resolve();
+            };
+            
+            // Small delay to ensure previous speech is cancelled
+            setTimeout(() => {
+                speechSynthesis.speak(utterance);
+            }, 100);
+        });
+    }
+    
+    function pauseAudio() {
+        if (audioInProgress && speechSynthesis.speaking) {
+            speechSynthesis.pause();
+        }
+    }
+    
+    function resumeAudio() {
+        if (audioInProgress && speechSynthesis.paused) {
+            speechSynthesis.resume();
+        }
+    }
+
+    function playDirectionalSound(direction) {
+        return new Promise((resolve) => {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            const oscillator = audioContext.createOscillator();
+            const panner = audioContext.createStereoPanner();
+            const gainNode = audioContext.createGain();
+            
+            if (direction === 'left') {
+                panner.pan.value = -1;
+            } else if (direction === 'right') {
+                panner.pan.value = 1;
+            }
+            
+            oscillator.connect(panner);
+            panner.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 440;
+            oscillator.type = 'sine';
+            gainNode.gain.value = 0.5;
+            
+            oscillator.start();
+            
+            setTimeout(() => {
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                setTimeout(() => {
+                    oscillator.stop();
+                    resolve();
+                }, 500);
+            }, 1000);
+        });
+    }
+
+    function startTimer() {
+        const timerDisplay = document.getElementById('timerDisplay');
+        timerDisplay.style.display = 'block';
+        
+        timerInterval = setInterval(() => {
+            if (testPaused) return;
+            
+            timeRemaining--;
+            timerDisplay.textContent = timeRemaining;
+            
+            timerDisplay.classList.remove('warning', 'danger');
+            if (timeRemaining <= 3) {
+                timerDisplay.classList.add('danger');
+            } else if (timeRemaining <= 5) {
+                timerDisplay.classList.add('warning');
+            }
+            
+            if (timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                handleTimeUp();
+            }
+        }, 1000);
+    }
+
+    async function handleTimeUp() {
+        if (hasAnswered) return; // Already answered, ignore timeout
+        
+        hasAnswered = true;
+        
+        if (recognition) {
+            recognition.stop();
+        }
+        
+        if (currentTest === 'test1') {
+            const questionNum = test1Questions[currentQuestion - 1].questionNumber;
+            const question = test1Questions[currentQuestion - 1];
+            
+            // Record no response
+            testResults.test1_audioReaction.push({
+                questionNumber: questionNum,
+                correctAnswer: question.direction + ' side',
+                userResponse: 'No response',
+                correct: false,
+                timeUsed: 10,
+                timestamp: new Date().toISOString()
+            });
+            
+            test1WrongAnswers++;
+            
+            // Display timeout response
+            const userResponseDisplay = document.getElementById('userResponseDisplay');
+            const userResponseText = document.getElementById('userResponseText');
+            userResponseDisplay.style.display = 'block';
+            userResponseText.innerHTML = `<strong>NO RESPONSE</strong> <span class="response-status incorrect">✗ TIME OUT</span>`;
+            
+            document.getElementById('timerDisplay').style.display = 'none';
+            document.getElementById('responseIndicator').textContent = `⏰ Time Up! The correct answer was: ${question.direction.toUpperCase()} SIDE`;
+            document.getElementById('responseIndicator').style.background = 'rgba(255, 170, 0, 0.3)';
+            document.getElementById('responseIndicator').style.border = '2px solid #ffaa00';
+            
+            await speak(`Time completed for Question ${questionNum}`);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            
+            userResponseDisplay.style.display = 'none';
+            nextTest1Question();
+        } else if (currentTest === 'test2') {
+            const questionData = test2Questions[currentQuestion - 1];
+            
+            // Record no response
+            testResults.test2_audioQA.push({
+                questionNumber: currentQuestion,
+                question: questionData.question,
+                correctAnswer: questionData.correctAnswer,
+                userResponse: 'No response',
+                correct: false,
+                timestamp: new Date().toISOString()
+            });
+            
+            test2WrongAnswers++;
+            
+            // Display timeout response
+            const userResponseDisplay = document.getElementById('userResponseDisplay');
+            const userResponseText = document.getElementById('userResponseText');
+            userResponseDisplay.style.display = 'block';
+            userResponseText.innerHTML = `<strong>NO RESPONSE</strong> <span class="response-status incorrect">✗ TIME OUT</span>`;
+            
+            document.getElementById('timerDisplay').style.display = 'none';
+            document.getElementById('responseIndicator').textContent = `⏰ Time Up! The correct answer was: OPTION ${questionData.correctAnswer.toUpperCase()}`;
+            document.getElementById('responseIndicator').style.background = 'rgba(255, 170, 0, 0.3)';
+            document.getElementById('responseIndicator').style.border = '2px solid #ffaa00';
+            
+            await speak(`Time completed for Question ${currentQuestion}`);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            
+            userResponseDisplay.style.display = 'none';
+            nextTest2Question();
+        }
+    }
+
+    function startVoiceRecognition() {
+        if (!('webkitSpeechRecognition' in window)) {
+            alert('Speech recognition not supported in this browser. Please use Chrome.');
+            return;
+        }
+        
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = true;  // Keep listening
+        recognition.interimResults = true;  // Show interim results
+        recognition.lang = 'en-US';
+        recognition.maxAlternatives = 3;  // Get multiple alternatives
+        
+        recognition.onstart = () => {
+            console.log('Voice recognition started');
+            document.getElementById('responseIndicator').textContent = '🎤 Listening for your answer...';
+            document.getElementById('responseIndicator').style.background = 'rgba(0, 255, 136, 0.2)';
+            document.getElementById('responseIndicator').style.border = '2px solid #00ff88';
+        };
+        
+        recognition.onresult = (event) => {
+            if (testPaused || hasAnswered) return;
+            
+            // Get the latest result
+            const lastResultIndex = event.results.length - 1;
+            const result = event.results[lastResultIndex];
+            
+            if (result.isFinal) {
+                const transcript = result[0].transcript.toLowerCase().trim();
+                console.log('Final transcript:', transcript);
+                
+                // Display what user said
+                document.getElementById('responseIndicator').textContent = `You said: "${transcript}"`;
+                document.getElementById('responseIndicator').style.background = 'rgba(0, 170, 255, 0.2)';
+                document.getElementById('responseIndicator').style.border = '2px solid #00aaff';
+                
+                handleVoiceResponse(transcript);
+            } else {
+                // Show interim results
+                const transcript = result[0].transcript;
+                document.getElementById('responseIndicator').textContent = `Hearing: "${transcript}..."`;
+                document.getElementById('responseIndicator').style.background = 'rgba(255, 170, 0, 0.1)';
+            }
+        };
+        
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            
+            if (event.error === 'no-speech') {
+                document.getElementById('responseIndicator').textContent = 'No speech detected. Please speak clearly.';
+            } else if (event.error === 'audio-capture') {
+                document.getElementById('responseIndicator').textContent = 'Microphone error. Please check your microphone.';
+            } else if (event.error === 'not-allowed') {
+                document.getElementById('responseIndicator').textContent = 'Microphone permission denied. Please allow microphone access.';
+            } else {
+                document.getElementById('responseIndicator').textContent = `Error: ${event.error}`;
+            }
+            
+            if (!testPaused && timeRemaining > 0 && !hasAnswered) {
+                setTimeout(() => {
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        console.log('Recognition restart failed:', e);
+                    }
+                }, 1000);
+            }
+        };
+        
+        recognition.onend = () => {
+            console.log('Voice recognition ended');
+            if (!testPaused && timeRemaining > 0 && !hasAnswered && (currentTest === 'test1' || currentTest === 'test2')) {
+                setTimeout(() => {
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        console.log('Recognition restart failed:', e);
+                    }
+                }, 100);
+            }
+        };
+        
+        try {
+            recognition.start();
+        } catch (e) {
+            console.error('Failed to start recognition:', e);
+            document.getElementById('responseIndicator').textContent = 'Failed to start voice recognition. Please refresh the page.';
+        }
+    }
+
+    function handleVoiceResponse(transcript) {
+        if (hasAnswered || isProcessingQuestion) return; // Ignore if already answered
+        
+        document.getElementById('responseIndicator').textContent = `You said: ${transcript}`;
+        
+        if (currentTest === 'test1') {
+            handleTest1Response(transcript);
+        } else if (currentTest === 'test2') {
+            handleTest2Response(transcript);
+        }
+    }
+
+    async function handleTest1Response(transcript) {
+        if (hasAnswered) return;
+        
+        let detectedDirection = null;
+        const lowerTranscript = transcript.toLowerCase().trim();
+        
+        // More flexible matching
+        if (lowerTranscript.includes('left')) {
+            detectedDirection = 'left';
+        } else if (lowerTranscript.includes('right')) {
+            detectedDirection = 'right';
+        }
+        
+        if (!detectedDirection) {
+            document.getElementById('responseIndicator').textContent = '⚠️ Invalid response. Please say: "left side" or "right side"';
+            document.getElementById('responseIndicator').style.background = 'rgba(255, 170, 0, 0.3)';
+            return;
+        }
+        
+        hasAnswered = true;
+        clearInterval(timerInterval);
+        const timeUsed = 10 - timeRemaining;
+        
+        const question = test1Questions[currentQuestion - 1];
+        const correct = detectedDirection === question.direction;
+        
+        if (correct) {
+            test1CorrectAnswers++;
+        } else {
+            test1WrongAnswers++;
+        }
+        
+        document.getElementById('scoreDisplay').textContent = `Test 1 Score: ${test1CorrectAnswers}/${totalTest1Questions}`;
+        
+        // Display user response prominently
+        const userResponseDisplay = document.getElementById('userResponseDisplay');
+        const userResponseText = document.getElementById('userResponseText');
+        userResponseDisplay.style.display = 'block';
+        userResponseText.innerHTML = `<strong>${detectedDirection.toUpperCase()} SIDE</strong> <span class="response-status ${correct ? 'correct' : 'incorrect'}">${correct ? '✓ CORRECT' : '✗ INCORRECT'}</span>`;
+        
+        testResults.test1_audioReaction.push({
+            questionNumber: question.questionNumber,
+            correctAnswer: question.direction + ' side',
+            userResponse: detectedDirection + ' side',
+            correct: correct,
+            timeUsed: timeUsed,
+            timestamp: new Date().toISOString()
+        });
+        
+        if (correct) {
+            document.getElementById('responseIndicator').textContent = '✅ Excellent! Your answer is correct!';
+            document.getElementById('responseIndicator').style.background = 'rgba(0, 255, 136, 0.3)';
+            document.getElementById('responseIndicator').style.border = '2px solid #00ff88';
+        } else {
+            document.getElementById('responseIndicator').textContent = `❌ Incorrect. The correct answer was: ${question.direction.toUpperCase()} SIDE`;
+            document.getElementById('responseIndicator').style.background = 'rgba(255, 107, 107, 0.3)';
+            document.getElementById('responseIndicator').style.border = '2px solid #ff6b6b';
+        }
+        
+        document.getElementById('timerDisplay').style.display = 'none';
+        
+        if (recognition) {
+            recognition.stop();
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        
+        // Hide user response before next question
+        userResponseDisplay.style.display = 'none';
+        nextTest1Question();
+    }
+
+    async function handleTest2Response(transcript) {
+        if (hasAnswered) return;
+        
+        const questionData = test2Questions[currentQuestion - 1];
+        let detectedOption = null;
+        
+        // Extract only single letter option from transcript
+        const lowerTranscript = transcript.toLowerCase().trim();
+        
+        // Match patterns: "a", "option a", "a)", or just the letter
+        const optionMatch = lowerTranscript.match(/\b([abcd])\b/);
+        
+        if (optionMatch) {
+            detectedOption = optionMatch[1];
+        }
+        
+        if (!detectedOption) {
+            document.getElementById('responseIndicator').textContent = '⚠️ Invalid response. Please say: a, b, c, or d';
+            document.getElementById('responseIndicator').style.background = 'rgba(255, 170, 0, 0.3)';
+            return;
+        }
+        
+        hasAnswered = true;
+        clearInterval(timerInterval);
+        
+        // Strict comparison with correct answer
+        const correct = (detectedOption === questionData.correctAnswer);
+        
+        if (correct) {
+            test2CorrectAnswers++;
+        } else {
+            test2WrongAnswers++;
+        }
+        
+        // Display user response prominently
+        const userResponseDisplay = document.getElementById('userResponseDisplay');
+        const userResponseText = document.getElementById('userResponseText');
+        userResponseDisplay.style.display = 'block';
+        userResponseText.innerHTML = `<strong>OPTION ${detectedOption.toUpperCase()}</strong> <span class="response-status ${correct ? 'correct' : 'incorrect'}">${correct ? '✓ CORRECT' : '✗ INCORRECT'}</span>`;
+        
+        testResults.test2_audioQA.push({
+            questionNumber: currentQuestion,
+            question: questionData.question,
+            correctAnswer: questionData.correctAnswer,
+            userResponse: detectedOption,
+            correct: correct,
+            timestamp: new Date().toISOString()
+        });
+        
+        if (correct) {
+            document.getElementById('responseIndicator').textContent = '✅ Excellent! Your answer is correct!';
+            document.getElementById('responseIndicator').style.background = 'rgba(0, 255, 136, 0.3)';
+            document.getElementById('responseIndicator').style.border = '2px solid #00ff88';
+        } else {
+            document.getElementById('responseIndicator').textContent = `❌ Incorrect. The correct answer was: OPTION ${questionData.correctAnswer.toUpperCase()}`;
+            document.getElementById('responseIndicator').style.background = 'rgba(255, 107, 107, 0.3)';
+            document.getElementById('responseIndicator').style.border = '2px solid #ff6b6b';
+        }
+        
+        document.getElementById('timerDisplay').style.display = 'none';
+        
+        if (recognition) {
+            recognition.stop();
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        
+        // Hide user response before next question
+        userResponseDisplay.style.display = 'none';
+        nextTest2Question();
+    }
+
+    async function startIntro() {
+        document.getElementById('testStatus').textContent = 'Instructions';
+        document.getElementById('questionDisplay').textContent = 'Please listen to the instructions carefully...';
+        
+        await speak("The assessment will begin in 1 minute.");
+        await speak("You are under camera surveillance.");
+        await speak("Please ensure that you follow all guidelines carefully.");
+        await speak("Stay within camera view at all times.");
+        await speak("Do not switch tabs or use unauthorized devices.");
+        await speak("Ensure a quiet and distraction free environment.");
+        await speak("Do not communicate with others during the test.");
+        await speak("Any suspicious activity may lead to disqualification.");
+        await speak("Please stay focused.");
+        await speak("The test will begin now. Best of luck!");
+        
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        startTest1();
+    }
+
+    async function startTest1() {
+        currentTest = 'test1';
+        currentQuestion = 0;
+        test1CorrectAnswers = 0;
+        test1WrongAnswers = 0;
+        
+        document.getElementById('testStatus').textContent = 'Test 1: Audio Reaction Test';
+        document.getElementById('scoreDisplay').textContent = `Test 1 Score: ${test1CorrectAnswers}/${totalTest1Questions}`;
+        document.getElementById('questionDisplay').textContent = 'Starting Test 1...';
+        document.getElementById('responseIndicator').textContent = '';
+        document.getElementById('correctAnswer').style.display = 'none';
+        
+        await speak("First test is Audio Reaction Test.");
+        await speak("The system will play sounds from Left side or Right side.");
+        await speak("Please answer correctly.");
+        
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        nextTest1Question();
+    }
+
+    async function nextTest1Question() {
+        if (currentQuestion >= test1Questions.length) {
+            await startBreakPeriod();
+            return;
+        }
+        
+        isProcessingQuestion = true;
+        hasAnswered = false;
+        currentQuestion++;
+        const question = test1Questions[currentQuestion - 1];
+        const questionNum = question.questionNumber;
+        
+        // Reset displays
+        document.getElementById('questionDisplay').textContent = `Question ${questionNum} of ${totalTest1Questions}`;
+        document.getElementById('progressBar').style.width = `${(questionNum / (totalTest1Questions + totalTest2Questions)) * 100}%`;
+        document.getElementById('responseIndicator').textContent = 'Get ready...';
+        document.getElementById('responseIndicator').style.background = 'rgba(255, 170, 0, 0.1)';
+        document.getElementById('responseIndicator').style.border = 'none';
+        document.getElementById('correctAnswer').style.display = 'none';
+        document.getElementById('userResponseDisplay').style.display = 'none';
+        
+        currentCorrectAnswer = question.direction + ' side';
+        
+        // Show correct answer for testing (remove in production)
+        document.getElementById('correctAnswer').textContent = `Correct Answer: ${question.direction.toUpperCase()} SIDE`;
+        document.getElementById('correctAnswer').style.display = 'block';
+        
+        // Audio instruction
+        const chanceText = questionNum === 1 ? 'first' : questionNum === 2 ? 'second' : 'third';
+        await speak(`Guess the direction of the sound for the ${chanceText} chance.`);
+        
+        // Play directional sound
+        await playDirectionalSound(question.direction);
+        
+        // Start timer and voice recognition
+        document.getElementById('responseIndicator').textContent = '🎤 Listening for your answer...';
+        document.getElementById('responseIndicator').style.background = 'rgba(0, 255, 136, 0.2)';
+        document.getElementById('responseIndicator').style.border = '2px solid #00ff88';
+        isProcessingQuestion = false;
+        timeRemaining = 10;
+        startTimer();
+        startVoiceRecognition();
+    }
+
+    async function startBreakPeriod() {
+        currentTest = 'break';
+        
+        document.getElementById('testStatus').textContent = 'Break Time';
+        document.getElementById('questionDisplay').textContent = 'Test 1 Completed! Test 2 will start soon...';
+        document.getElementById('correctAnswer').style.display = 'none';
+        document.getElementById('responseIndicator').textContent = '';
+        
+        await speak("Test 2 will start in next 20 seconds.");
+        
+        timeRemaining = 20;
+        const timerDisplay = document.getElementById('timerDisplay');
+        timerDisplay.style.display = 'block';
+        timerDisplay.classList.remove('warning', 'danger');
+        timerDisplay.textContent = timeRemaining;
+        
+        timerInterval = setInterval(() => {
+            if (testPaused) return;
+            
+            timeRemaining--;
+            timerDisplay.textContent = timeRemaining;
+            
+            if (timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                timerDisplay.style.display = 'none';
+                startTest2();
+            }
+        }, 1000);
+    }
+
+    async function startTest2() {
+        currentTest = 'test2';
+        currentQuestion = 0;
+        test2CorrectAnswers = 0;
+        test2WrongAnswers = 0;
+        
+        document.getElementById('testStatus').textContent = 'Test 2: Audio Q&A Test';
+        document.getElementById('scoreDisplay').textContent = `Test 2: Question 0/${totalTest2Questions}`;
+        document.getElementById('questionDisplay').textContent = 'Starting Test 2...';
+        document.getElementById('responseIndicator').textContent = '';
+        document.getElementById('correctAnswer').style.display = 'none';
+        
+        await speak("Test 2 that is Audio Q and A Test is started.");
+        await speak("Second test is Audio Q and A Test.");
+        await speak("Please listen carefully and answer the questions correctly.");
+        await speak("Choose the correct MCQ question with options a, b, c, d.");
+        
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        nextTest2Question();
+    }
+
+    async function nextTest2Question() {
+        if (currentQuestion >= test2Questions.length) {
+            await completeAssessment();
+            return;
+        }
+        
+        isProcessingQuestion = true;
+        hasAnswered = false;
+        currentQuestion++;
+        const questionData = test2Questions[currentQuestion - 1];
+        
+        // Reset displays
+        document.getElementById('questionDisplay').textContent = `Question ${currentQuestion} of ${totalTest2Questions}`;
+        document.getElementById('progressBar').style.width = `${((totalTest1Questions + currentQuestion) / (totalTest1Questions + totalTest2Questions)) * 100}%`;
+        document.getElementById('scoreDisplay').textContent = `Test 2: Question ${currentQuestion}/${totalTest2Questions}`;
+        document.getElementById('responseIndicator').textContent = 'Get ready...';
+        document.getElementById('responseIndicator').style.background = 'rgba(255, 170, 0, 0.1)';
+        document.getElementById('responseIndicator').style.border = 'none';
+        document.getElementById('userResponseDisplay').style.display = 'none';
+        
+        // Show correct answer for testing (remove in production)
+        document.getElementById('correctAnswer').textContent = `Correct Answer: ${questionData.correctAnswer.toUpperCase()}`;
+        document.getElementById('correctAnswer').style.display = 'block';
+        
+        // Read question
+        await speak(questionData.question);
+        
+        // Read all options
+        for (let i = 0; i < questionData.options.length; i++) {
+            await speak(questionData.options[i]);
+        }
+        
+        // Start timer and voice recognition
+        document.getElementById('responseIndicator').textContent = '🎤 Listening for your answer...';
+        document.getElementById('responseIndicator').style.background = 'rgba(0, 255, 136, 0.2)';
+        document.getElementById('responseIndicator').style.border = '2px solid #00ff88';
+        isProcessingQuestion = false;
+        timeRemaining = 15;
+        startTimer();
+        startVoiceRecognition();
+    }
+
+    async function completeAssessment() {
+        currentTest = 'complete';
+        
+        // Stop any ongoing speech
+        speechSynthesis.cancel();
+        
+        document.getElementById('testStatus').textContent = 'Assessment Complete!';
+        document.getElementById('questionDisplay').textContent = 'Calculating results...';
+        document.getElementById('progressBar').style.width = '100%';
+        document.getElementById('timerDisplay').style.display = 'none';
+        document.getElementById('correctAnswer').style.display = 'none';
+        document.getElementById('responseIndicator').textContent = '';
+        
+        await speak("The assessment test has completed.");
+        
+        // Calculate total score
+        const totalScore = test1CorrectAnswers + test2CorrectAnswers;
+        const totalQuestions = totalTest1Questions + totalTest2Questions; // 8
+        
+        const test1Accuracy = (test1CorrectAnswers / totalTest1Questions) * 100;
+        const test2Accuracy = (test2CorrectAnswers / totalTest2Questions) * 100;
+        
+        console.log('Assessment Results:', {
+            test1: { correct: test1CorrectAnswers, wrong: test1WrongAnswers, total: totalTest1Questions },
+            test2: { correct: test2CorrectAnswers, wrong: test2WrongAnswers, total: totalTest2Questions },
+            totalScore: totalScore,
+            totalQuestions: totalQuestions
+        });
+        
+        // Qualification logic: Score >= 6 out of 8
+        let qualified = false;
+        let qualificationMessage = '';
+        
+        if (totalScore >= 6) {
+            qualified = true;
+            qualificationMessage = "You have qualified the assessment test according to our benchmark criteria";
+            document.getElementById('questionDisplay').textContent = '🎉 Congratulations! You are QUALIFIED!';
+            document.getElementById('questionDisplay').style.color = '#00ff88';
+        } else {
+            qualified = false;
+            qualificationMessage = "Not Qualified, Better Luck next time";
+            document.getElementById('questionDisplay').textContent = '❌ Not Qualified';
+            document.getElementById('questionDisplay').style.color = '#ff6b6b';
+        }
+        
+        // Announce qualification result
+        await speak(qualificationMessage);
+        
+        // Save to database
+        await fetch('/api/save_blind_assessment_complete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                test1_audioReaction: testResults.test1_audioReaction,
+                test2_audioQA: testResults.test2_audioQA,
+                faceDetectionLogs: testResults.faceDetectionLogs,
+                test1Score: test1CorrectAnswers,
+                test1WrongAnswers: test1WrongAnswers,
+                test1TotalQuestions: totalTest1Questions,
+                test1Accuracy: test1Accuracy,
+                test2Score: test2CorrectAnswers,
+                test2WrongAnswers: test2WrongAnswers,
+                test2TotalQuestions: totalTest2Questions,
+                test2Accuracy: test2Accuracy,
+                totalScore: totalScore,
+                totalQuestions: totalQuestions,
+                qualified: qualified,
+                qualificationMessage: qualificationMessage
+            })
+        });
+        
+        setTimeout(() => {
+            window.location.href = '/blind_dashboard';
+        }, 3000);
+    }
+
+    window.addEventListener('load', async () => {
+        canvasElement.width = 640;
+        canvasElement.height = 480;
+        
+        await initializeFaceDetection();
+        setTimeout(() => startIntro(), 1000);
+    });
+</script>
+{% endblock %}

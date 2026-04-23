@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-09-09T12:54:07.232215",
+  "height_cm": 140,
+  "weight_kg": 40,
+  "bmi": 20.408163265306126,
+  "confidence_score": 0.83,
+  "uncertainty_height": 1.0,
+  "uncertainty_weight": 2.0,
+  "processing_time_ms": 920.1421737670898
+}

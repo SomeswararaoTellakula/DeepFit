@@ -1,0 +1,27 @@
+{
+  "timestamp": "2025-09-10T16:29:02.793541",
+  "measurement_id": "HW_20250910_162902_793",
+  "height_cm": 192.76,
+  "weight_kg": 72.61,
+  "bmi": 19.54,
+  "bmi_category": "Normal Weight",
+  "health_risk_level": "Low",
+  "confidence_score": 0.98,
+  "measurement_quality": "Excellent",
+  "uncertainty_height_cm": 0.5,
+  "uncertainty_weight_kg": 1.0,
+  "processing_time_ms": 411.3,
+  "stability_frames_analyzed": 7,
+  "detection_status": "auto_saved",
+  "auto_saved": true,
+  "ideal_weight_range_kg": {
+    "min": 68.7,
+    "max": 92.5
+  },
+  "weight_difference_kg": -8.0,
+  "weight_status": "Below ideal",
+  "system_version": "2.0_enhanced",
+  "accuracy_target": "98%",
+  "measurement_method": "Multi-modal anthropometric analysis",
+  "validation_level": "High precision with temporal stability"
+}

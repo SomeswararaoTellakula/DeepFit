@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepFit - Dumbbell Curl Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='situp-modern.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/exercise-common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/exercise-header.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="theme-color" content="#000000">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-title">
+                    <h1 style="color: #06b6d4;"><span class="header-icon">💪</span> Dumbbell Curl Tracker</h1>
+                    <p>Your AI-powered personal trainer for perfect dumbbell curls</p>
+                </div>
+                <a href="/" class="btn btn-secondary btn-back">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="btn-text">Back to Home</span>
+                </a>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="video-section">
+                <div class="video-container-large">
+                    <img id="video-feed" src="" alt="Camera feed will appear here" style="display: none;" 
+                         onerror="this.style.display='none'; document.getElementById('placeholder').style.display='flex';">
+                    <div id="placeholder" class="video-placeholder">
+                        <div class="placeholder-content">
+                            <h3>📹 Camera Ready</h3>
+                            <p>Click "Start Camera" to begin your dumbbell curl session</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="controls d-flex flex-wrap gap-2">
+                    <button id="verify-btn" class="btn btn-secondary" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                        <i class="fas fa-user-check"></i> Verify Identity
+                    </button>
+                    <button id="start-btn" class="btn btn-primary" disabled title="Verify identity first">Start Camera</button>
+                    <button id="stop-btn" class="btn btn-secondary" disabled>Stop Camera</button>
+                    <button id="reset-btn" class="btn btn-warning">Reset Counter</button>
+                    <button id="submit-btn" class="btn btn-success">Submit</button>
+                </div>
+                <!-- Hidden video for verification capture -->
+                <video id="verify-video" autoplay playsinline style="display:none;"></video>
+            </div>
+            
+            <div class="stats-section">
+                <div class="timer-card">
+                    <h3>⏱️ Timer</h3>
+                    <div class="timer-display">
+                        <div class="time-remaining" id="timer-display">3:00</div>
+                        <div class="timer-label">Time Remaining</div>
+                        <div class="timer-progress">
+                            <div class="timer-progress-bar">
+                                <div class="timer-progress-fill" id="timer-progress"></div>
+                            </div>
+                        </div>
+                        <div class="session-status" id="session-status">Ready to start</div>
+                    </div>
+                </div>
+
+                <div class="stats-card">
+                    <h3>📊 Workout Stats</h3>
+                    
+                    <div class="stat-item">
+                        <div class="stat-label">Left Reps</div>
+                        <div class="stat-value" id="left-reps">0</div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-label">Right Reps</div>
+                        <div class="stat-value" id="right-reps">0</div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-label">Total Reps</div>
+                        <div class="stat-value" id="total-reps">0</div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-label">Left Arm Status</div>
+                        <div class="feedback" id="left-status">Not visible</div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-label">Identity Verified</div>
+                        <div class="feedback" id="identity-verified">NO</div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-label">Right Arm Status</div>
+                        <div class="feedback" id="right-status">Not visible</div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-label">Estimated Weight</div>
+                        <div class="stat-value" id="estimated-weight">0.0 kg</div>
+                    </div>
+                </div>
+
+                <div class="instructions-card">
+                    <h3>📋 Instructions</h3>
+                    <ul>
+                        <li>Keep elbows fixed close to your body</li>
+                        <li>Full range of motion: start with arms straight</li>
+                        <li>Controlled tempo: 1-2 seconds up, 2-3 seconds down</li>
+                        <li>Face the camera directly for accurate detection</li>
+                        <li>Keep one arm stationary while curling with the other</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Responsive layout for dumbbell page */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 1.25rem;
+            align-items: start;
+        }
+
+        /* Reserve space for video to avoid layout jumps when camera toggles */
+        .video-container-large {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            min-height: 280px; /* ensures there's always space on small devices */
+            background: #071730; /* solid dark-blue */
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e6eef9;
+        }
+
+        .video-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ddd;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        /* Controls should wrap and be touch friendly */
+        .controls .btn {
+            min-height: 44px;
+            padding: .6rem 1rem;
+            flex: 1 1 auto;
+            white-space: nowrap;
+        }
+
+        /* Stats section cards stack vertically with small gaps */
+        .stats-section {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .timer-card, .stats-card, .instructions-card {
+            background: #071730; /* solid dark-blue */
+            border-radius: 12px;
+            padding: 1rem;
+            color: #e6eef9;
+            border: 1px solid rgba(255,255,255,0.04);
+            box-shadow: 0 6px 18px rgba(2,6,23,0.45);
+        }
+
+        /* Make layout single-column on small screens */
+        @media (max-width: 992px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .video-container-large { min-height: 220px; }
+
+            .controls { justify-content: center; }
+
+            .controls .btn { flex: 1 1 45%; }
+        }
+
+        @media (max-width: 480px) {
+            .controls .btn { flex: 1 1 100%; }
+            .video-container-large { min-height: 180px; }
+        }
+    </style>
+
+    <script>
+        class DumbbellTracker {
+            constructor() {
+                this.isRunning = false;
+                this.statsInterval = null;
+                this.timerInterval = null;
+                this.timeRemaining = 180; // 3 minutes in seconds
+                this.totalTime = 180;
+                this.startTime = null;
+                this.endTime = null;
+                this.timerCompleted = false;
+                this.isVerified = false;
+                this.initializeElements();
+                this.bindEvents();
+                this.initializeVerificationCamera();
+            }
+
+            initializeElements() {
+                this.startBtn = document.getElementById('start-btn');
+                this.verifyBtn = document.getElementById('verify-btn');
+                this.stopBtn = document.getElementById('stop-btn');
+                this.resetBtn = document.getElementById('reset-btn');
+                this.submitBtn = document.getElementById('submit-btn');
+                this.videoFeed = document.getElementById('video-feed');
+                this.verifyVideo = document.getElementById('verify-video');
+                this.placeholder = document.getElementById('placeholder');
+                this.leftReps = document.getElementById('left-reps');
+                this.rightReps = document.getElementById('right-reps');
+                this.totalReps = document.getElementById('total-reps');
+                this.leftStatus = document.getElementById('left-status');
+                this.rightStatus = document.getElementById('right-status');
+                this.identityVerified = document.getElementById('identity-verified');
+                this.estimatedWeight = document.getElementById('estimated-weight');
+                this.timerDisplay = document.getElementById('timer-display');
+                this.timerProgress = document.getElementById('timer-progress');
+                this.sessionStatus = document.getElementById('session-status');
+            }
+
+            bindEvents() {
+                this.startBtn.addEventListener('click', () => this.startCamera());
+                this.verifyBtn.addEventListener('click', () => this.verifyIdentity());
+                this.stopBtn.addEventListener('click', () => this.stopCamera());
+                this.resetBtn.addEventListener('click', () => this.resetCounter());
+                this.submitBtn.addEventListener('click', () => this.submitResults());
+            }
+
+            async initializeVerificationCamera() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    this.verifyVideo.srcObject = stream;
+                    this.sessionStatus.textContent = 'Please verify identity to start';
+                } catch (error) {
+                    console.error('Error accessing verification camera:', error);
+                }
+            }
+
+            async verifyIdentity() {
+                try {
+                    this.verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+                    this.verifyBtn.disabled = true;
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = this.verifyVideo.videoWidth || 640;
+                    canvas.height = this.verifyVideo.videoHeight || 480;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(this.verifyVideo, 0, 0);
+                    const frameData = canvas.toDataURL('image/jpeg');
+
+                    const response = await fetch('/api/verify_user_identity', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ frame_data: frameData })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success && result.is_match) {
+                        this.isVerified = true;
+                        this.startBtn.disabled = false;
+                        this.identityVerified.textContent = 'YES';
+                        this.identityVerified.style.color = '#4CAF50';
+                        this.verifyBtn.innerHTML = '<i class="fas fa-check-circle"></i> Verified';
+                        this.sessionStatus.textContent = 'Identity verified. Ready to start.';
+                        
+                        if (this.verifyVideo.srcObject) {
+                            this.verifyVideo.srcObject.getTracks().forEach(t => t.stop());
+                        }
+                    } else {
+                        this.isVerified = false;
+                        this.identityVerified.textContent = 'NO';
+                        this.identityVerified.style.color = '#f44336';
+                        this.verifyBtn.innerHTML = '<i class="fas fa-user-check"></i> Verify Identity';
+                        this.verifyBtn.disabled = false;
+                        alert('Identity verification failed. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Verification error:', error);
+                    this.verifyBtn.innerHTML = '<i class="fas fa-user-check"></i> Verify Identity';
+                    this.verifyBtn.disabled = false;
+                }
+            }
+
+            async startCamera() {
+                try {
+                    this.showLoading('Starting camera...');
+                    
+                    const response = await fetch('/dumbbell/start_camera?' + new Date().getTime());
+                    const data = await response.json();
+                    
+                    if (data.status === 'success') {
+                        this.isRunning = true;
+                        this.videoFeed.src = '/dumbbell/video_feed?' + new Date().getTime();
+                        this.videoFeed.style.display = 'block';
+                        this.placeholder.style.display = 'none';
+                        
+                        this.startBtn.disabled = true;
+                        this.stopBtn.disabled = false;
+                        
+                        this.startTimer();
+                        this.startStatsUpdate();
+                        this.showFeedback('Camera started! Face the camera directly.', 'success');
+                    } else {
+                        this.showFeedback('Failed to start camera: ' + data.message, 'error');
+                    }
+                } catch (error) {
+                    this.showFeedback('Error starting camera: ' + error.message, 'error');
+                }
+            }
+
+            async stopCamera() {
+                try {
+                    await fetch('/dumbbell/stop_camera');
+                    
+                    this.isRunning = false;
+                    this.videoFeed.style.display = 'none';
+                    this.placeholder.style.display = 'flex';
+                    this.videoFeed.src = '';
+                    
+                    this.startBtn.disabled = false;
+                    this.stopBtn.disabled = true;
+                    
+                    this.stopTimer();
+                    this.stopStatsUpdate();
+                    this.showFeedback('Camera stopped.', 'info');
+                } catch (error) {
+                    this.isRunning = false;
+                    this.videoFeed.style.display = 'none';
+                    this.placeholder.style.display = 'flex';
+                    this.startBtn.disabled = false;
+                    this.stopBtn.disabled = true;
+                    this.stopStatsUpdate();
+                }
+            }
+
+            async resetCounter() {
+                try {
+                    if (this.isRunning) {
+                        await this.stopCamera();
+                    }
+                    
+                    const response = await fetch('/dumbbell/reset_counter');
+                    const data = await response.json();
+                    
+                    if (data.status === 'success') {
+                        this.isRunning = false;
+                        this.videoFeed.style.display = 'none';
+                        this.placeholder.style.display = 'flex';
+                        this.videoFeed.src = '';
+                        
+                        this.startBtn.disabled = false;
+                        this.stopBtn.disabled = true;
+                        
+                        this.stopStatsUpdate();
+                        this.resetTimer();
+                        
+                        this.updateStats({
+                            left_reps: 0,
+                            right_reps: 0,
+                            total_reps: 0,
+                            left_status: 'Not visible',
+                            right_status: 'Not visible',
+                            estimated_weight: 0.0
+                        });
+                        
+                        this.showFeedback('Counter reset! Ready for new session.', 'success');
+                    } else {
+                        this.showFeedback('Error resetting: ' + data.message, 'error');
+                    }
+                } catch (error) {
+                    this.showFeedback('Error resetting counter: ' + error.message, 'error');
+                }
+            }
+
+            startStatsUpdate() {
+                this.statsInterval = setInterval(async () => {
+                    if (this.isRunning) {
+                        try {
+                            const response = await fetch('/dumbbell/get_stats');
+                            const stats = await response.json();
+                            this.updateStats(stats);
+                        } catch (error) {
+                            console.error('Error fetching stats:', error);
+                        }
+                    }
+                }, 500);
+            }
+
+            stopStatsUpdate() {
+                if (this.statsInterval) {
+                    clearInterval(this.statsInterval);
+                    this.statsInterval = null;
+                }
+            }
+
+            updateStats(stats) {
+                // Update reps with animation
+                if (parseInt(this.leftReps.textContent) !== stats.left_reps) {
+                    this.animateNumber(this.leftReps, stats.left_reps);
+                }
+                if (parseInt(this.rightReps.textContent) !== stats.right_reps) {
+                    this.animateNumber(this.rightReps, stats.right_reps);
+                }
+                if (parseInt(this.totalReps.textContent) !== stats.total_reps) {
+                    this.animateNumber(this.totalReps, stats.total_reps);
+                }
+                
+                this.leftStatus.textContent = stats.left_status || 'Not visible';
+                this.rightStatus.textContent = stats.right_status || 'Not visible';
+                this.estimatedWeight.textContent = stats.estimated_weight + ' kg' || '0.0 kg';
+                
+                // Update status colors
+                this.leftStatus.style.color = stats.left_status.includes('°') ? '#4CAF50' : '#666';
+                this.rightStatus.style.color = stats.right_status.includes('°') ? '#4CAF50' : '#666';
+            }
+
+            animateNumber(element, targetValue) {
+                const currentValue = parseInt(element.textContent) || 0;
+                const increment = targetValue > currentValue ? 1 : -1;
+                const duration = 300;
+                const steps = Math.abs(targetValue - currentValue);
+                const stepDuration = duration / steps;
+
+                let current = currentValue;
+                const timer = setInterval(() => {
+                    current += increment;
+                    element.textContent = current;
+                    
+                    if (current === targetValue) {
+                        clearInterval(timer);
+                        if (targetValue > 0 && increment > 0) {
+                            this.celebrateRep(element);
+                        }
+                    }
+                }, stepDuration);
+            }
+
+            celebrateRep(element) {
+                element.classList.add('animate');
+                
+                const celebration = document.createElement('div');
+                celebration.textContent = '💪';
+                celebration.style.cssText = `
+                    position: absolute;
+                    font-size: 24px;
+                    animation: celebrate 1s ease-out;
+                    pointer-events: none;
+                `;
+                
+                element.parentNode.appendChild(celebration);
+                
+                setTimeout(() => {
+                    element.classList.remove('animate');
+                    if (celebration.parentNode) {
+                        celebration.parentNode.removeChild(celebration);
+                    }
+                }, 1000);
+            }
+
+            showLoading(message) {
+                this.leftStatus.textContent = message;
+                this.leftStatus.style.color = '#2196F3';
+            }
+
+            showFeedback(message, type) {
+                const colors = {
+                    success: '#4CAF50',
+                    error: '#f44336',
+                    info: '#2196F3',
+                    warning: '#ff9800'
+                };
+                
+                if (!this.isRunning || type === 'error') {
+                    const originalStatus = this.leftStatus.textContent;
+                    
+                    this.leftStatus.textContent = message;
+                    this.leftStatus.style.color = colors[type] || '#666';
+                    
+                    setTimeout(() => {
+                        if (!this.isRunning) {
+                            this.leftStatus.textContent = 'Not visible';
+                            this.leftStatus.style.color = '#666';
+                        }
+                    }, 3000);
+                }
+            }
+
+            startTimer() {
+                this.startTime = new Date();
+                this.timeRemaining = 180;
+                this.timerCompleted = false;
+                this.updateTimerDisplay();
+                
+                this.timerInterval = setInterval(() => {
+                    this.timeRemaining--;
+                    this.updateTimerDisplay();
+                    
+                    if (this.timeRemaining <= 0) {
+                        this.onTimerComplete();
+                    }
+                }, 1000);
+                
+                this.sessionStatus.textContent = 'Session in progress';
+            }
+
+            stopTimer() {
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                    this.timerInterval = null;
+                }
+                this.endTime = new Date();
+                this.sessionStatus.textContent = 'Session paused';
+            }
+
+            resetTimer() {
+                this.stopTimer();
+                this.timeRemaining = 180;
+                this.totalTime = 180;
+                this.startTime = null;
+                this.endTime = null;
+                this.timerCompleted = false;
+                this.updateTimerDisplay();
+                this.sessionStatus.textContent = 'Ready to start';
+            }
+
+            updateTimerDisplay() {
+                const minutes = Math.floor(this.timeRemaining / 60);
+                const seconds = this.timeRemaining % 60;
+                this.timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                const progress = ((this.totalTime - this.timeRemaining) / this.totalTime) * 100;
+                this.timerProgress.style.width = progress + '%';
+                
+                if (this.timeRemaining <= 30) {
+                    this.timerDisplay.style.color = '#f44336';
+                } else if (this.timeRemaining <= 60) {
+                    this.timerDisplay.style.color = '#ff9800';
+                } else {
+                    this.timerDisplay.style.color = '#00d4ff';
+                }
+            }
+
+            onTimerComplete() {
+                this.stopTimer();
+                this.timerCompleted = true;
+                this.timerDisplay.textContent = '0:00';
+                this.timerProgress.style.width = '100%';
+                this.sessionStatus.textContent = 'Time completed!';
+                
+                this.showTimeCompletedPopup();
+            }
+
+            showTimeCompletedPopup() {
+                const popup = document.createElement('div');
+                popup.className = 'popup-overlay';
+                popup.innerHTML = `
+                    <div class="popup-content">
+                        <div class="popup-icon">⏰</div>
+                        <h3>Time Completed!</h3>
+                        <p>Your 3-minute dumbbell curl session is complete. Please click Submit to save your results.</p>
+                        <button onclick="this.parentElement.parentElement.remove()" class="btn btn-primary">OK</button>
+                    </div>
+                `;
+                document.body.appendChild(popup);
+            }
+
+            async submitResults() {
+                try {
+                    const leftReps = parseInt(this.leftReps.textContent) || 0;
+                    const rightReps = parseInt(this.rightReps.textContent) || 0;
+                    const totalReps = parseInt(this.totalReps.textContent) || 0;
+                    const estimatedWeight = parseFloat(this.estimatedWeight.textContent.replace(' kg', '')) || 0;
+                    
+                    let timerTime;
+                    if (this.timerCompleted) {
+                        timerTime = '3:00';
+                    } else if (this.startTime && this.endTime) {
+                        const duration = Math.floor((this.endTime - this.startTime) / 1000);
+                        const minutes = Math.floor(duration / 60);
+                        const seconds = duration % 60;
+                        timerTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    } else {
+                        const elapsed = this.totalTime - this.timeRemaining;
+                        const minutes = Math.floor(elapsed / 60);
+                        const seconds = elapsed % 60;
+                        timerTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    }
+                    
+                    // Submit to backend
+                    const submitResponse = await fetch('/api/submit_dumbbell_result', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            left_reps: leftReps,
+                            right_reps: rightReps,
+                            total_reps: totalReps,
+                            estimated_weight: estimatedWeight,
+                            timer_time: timerTime
+                        })
+                    });
+                    
+                    const submitData = await submitResponse.json();
+                    
+                    if (submitData.success) {
+                        await this.resetCounter();
+                        window.location.href = `/displaydumbbell?left_reps=${leftReps}&right_reps=${rightReps}&total_reps=${totalReps}&weight=${estimatedWeight}&timer=${timerTime}`;
+                    } else {
+                        this.showFeedback('Error submitting results: ' + submitData.message, 'error');
+                    }
+                } catch (error) {
+                    this.showFeedback('Error submitting results: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // Initialize the dumbbell tracker when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new DumbbellTracker();
+        });
+
+        // Handle page visibility changes and cleanup
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                console.log('Page hidden - pausing camera');
+            } else {
+                console.log('Page visible');
+            }
+        });
+
+        // Cleanup when page is about to be unloaded
+        window.addEventListener('beforeunload', async () => {
+            try {
+                await fetch('/dumbbell/cleanup', { method: 'POST' });
+            } catch (error) {
+                console.log('Cleanup error:', error);
+            }
+        });
+
+        // Handle page refresh/close
+        window.addEventListener('unload', () => {
+            navigator.sendBeacon('/dumbbell/cleanup');
+        });
+
+        // Add popup styles and animation
+        const style = document.createElement('style');
+        style.textContent = `
+            .video-container-large {
+                position: relative;
+                aspect-ratio: 16/9;
+                background: #000;
+                border-radius: 15px;
+                overflow: hidden;
+                margin-bottom: 20px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                width: 100%;
+                min-height: 500px;
+            }
+            .video-container-large #video-feed {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 15px;
+            }
+            .popup-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+            }
+            .popup-content {
+                background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(0, 170, 255, 0.1));
+                padding: 30px;
+                border-radius: 15px;
+                text-align: center;
+                max-width: 400px;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .popup-icon {
+                font-size: 3rem;
+                margin-bottom: 20px;
+            }
+            @keyframes celebrate {
+                0% { transform: translateY(0) scale(1); opacity: 1; }
+                50% { transform: translateY(-20px) scale(1.2); opacity: 0.8; }
+                100% { transform: translateY(-40px) scale(0.8); opacity: 0; }
+            }
+            .animate {
+                animation: pulse 0.3s ease-in-out;
+            }
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+                100% { transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

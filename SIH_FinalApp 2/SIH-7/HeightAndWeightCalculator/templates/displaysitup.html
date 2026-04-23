@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepFit - Situp Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='situp-modern.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            /* Title stays at the top */
+            padding: 20px;
+        }
+
+        .chart-card h3 {
+            margin-bottom: 15px;
+            /* Space between heading and chart */
+            text-align: center;
+            width: 100%;
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        .responsive-chart-inner {
+            width: 100%;
+            height: 400px;
+            /* Adjust as needed */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 style="color: #06b6d4;">🏆 Situp Results</h1>
+                    <p>Your latest workout performance</p>
+                </div>
+                <a href="/" class="btn btn-secondary" style="text-decoration: none;">← Back to Home</a>
+            </div>
+        </header>
+
+        <div class="results-container">
+            <div class="results-card">
+                <h3>📊 Latest Submission</h3>
+
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-repeat"></i>
+                        Reps Completed
+                    </div>
+                    <div class="result-value" id="reps-result">-</div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-star"></i>
+                        Form Quality
+                    </div>
+                    <div class="result-value" id="form-result">-</div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-clock"></i>
+                        Timer Duration
+                    </div>
+                    <div class="result-value" id="timer-result">-</div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">
+                        <i class="fas fa-calendar"></i>
+                        Submission Time
+                    </div>
+                    <div class="result-value" id="submission-time">-</div>
+                </div>
+            </div>
+
+            <div class="actions-card">
+                <h3>🎯 Actions</h3>
+                <div class="action-buttons">
+                    <button onclick="window.location.href='/situp/'" class="btn btn-primary">
+                        <i class="fas fa-play"></i>
+                        Start New Session
+                    </button>
+                    <button onclick="loadResults()" class="btn btn-secondary">
+                        <i class="fas fa-refresh"></i>
+                        Refresh Results
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slider-container">
+            <button class="slider-arrow slider-arrow-left" onclick="showPrevSitupChart()">&#8592;</button>
+            <div class="slider-charts">
+                <div class="slider-chart chart-card responsive-chart" id="situp-chart-slide-0">
+                    <h3>📈 Performance Over Time</h3>
+                    <div class="responsive-chart-inner">
+                        <canvas id="performanceChart" class="responsive-canvas"></canvas>
+                    </div>
+                </div>
+                <div class="slider-chart chart-card responsive-chart" id="situp-chart-slide-1" style="display:none;">
+                    <h3>🎯 Efficiency Analysis</h3>
+                    <div class="responsive-chart-inner">
+                        <canvas id="efficiencyChart" class="responsive-canvas"></canvas>
+                    </div>
+                </div>
+                <div class="slider-chart chart-card responsive-chart" id="situp-chart-slide-2" style="display:none;">
+                    <h3>📊 Comprehensive Performance Analysis</h3>
+                    <div class="responsive-chart-inner">
+                        <canvas id="comprehensiveChart" class="responsive-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+            <button class="slider-arrow slider-arrow-right" onclick="showNextSitupChart()">&#8594;</button>
+        </div>
+        <script>
+            let currentSitupChartIndex = 0;
+            function showSitupChartAt(idx) {
+                const total = 3;
+                for (let i = 0; i < total; i++) {
+                    document.getElementById('situp-chart-slide-' + i).style.display = (i === idx) ? '' : 'none';
+                }
+                currentSitupChartIndex = idx;
+            }
+            function showPrevSitupChart() {
+                let idx = currentSitupChartIndex - 1;
+                if (idx < 0) idx = 2;
+                showSitupChartAt(idx);
+            }
+            function showNextSitupChart() {
+                let idx = currentSitupChartIndex + 1;
+                if (idx > 2) idx = 0;
+                showSitupChartAt(idx);
+            }
+        </script>
+        <style>
+            .slider-container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 40px 0 30px 0;
+                width: 100%;
+                gap: 18px;
+            }
+
+            .slider-charts {
+                width: 100%;
+                max-width: 1200px;
+                min-width: 320px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+            }
+
+            .slider-chart {
+                width: 100%;
+                max-width: 1100px;
+                min-width: 320px;
+                transition: opacity 0.3s;
+            }
+
+            .slider-arrow {
+                font-size: 2.5rem;
+                background: #1e293b;
+                color: #fff;
+                border: none;
+                border-radius: 50%;
+                width: 56px;
+                height: 56px;
+                cursor: pointer;
+                box-shadow: 0 2px 12px rgba(30, 41, 59, 0.18);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background 0.2s;
+            }
+
+            .slider-arrow:hover {
+                background: #3b82f6;
+                color: #fff;
+            }
+        </style>
+
+        <div id="no-data" class="no-data-message" style="display: none;">
+            <div class="no-data-content">
+                <i class="fas fa-info-circle"></i>
+                <h3>No Results Yet</h3>
+                <p>Complete a situp session to see your results here.</p>
+                <button onclick="window.location.href='/situp/'" class="btn btn-primary">
+                    Start Your First Session
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let performanceChart, efficiencyChart, comprehensiveChart;
+
+        async function loadResults() {
+            try {
+                const response = await fetch('/api/situp_data');
+                const data = await response.json();
+
+                if (data.length > 0) {
+                    const latest = data[0];
+                    document.getElementById('reps-result').textContent = latest.reps_completed;
+                    document.getElementById('form-result').textContent = latest.form_quality + '%';
+                    document.getElementById('timer-result').textContent = latest.timer_time;
+                    document.getElementById('submission-time').textContent = new Date(latest.submission_time).toLocaleString();
+
+                    document.querySelector('.results-container').style.display = 'block';
+                    document.getElementById('no-data').style.display = 'none';
+
+                    renderCharts(data);
+                } else {
+                    document.querySelector('.results-container').style.display = 'none';
+                    document.getElementById('no-data').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading results:', error);
+                document.querySelector('.results-container').style.display = 'none';
+                document.getElementById('no-data').style.display = 'block';
+            }
+        }
+
+        function renderCharts(data) {
+            const sortedData = data.sort((a, b) => new Date(a.submission_time) - new Date(b.submission_time));
+
+            // Performance Over Time Chart (Dual-Axis Area Chart)
+            const ctx1 = document.getElementById('performanceChart').getContext('2d');
+            if (performanceChart) performanceChart.destroy();
+
+            performanceChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: sortedData.map(d => d.timer_time + 's'),
+                    datasets: [{
+                        label: 'Reps Completed',
+                        data: sortedData.map(d => d.reps_completed),
+                        backgroundColor: 'rgba(16, 185, 129, 0.4)',
+                        borderColor: '#10B981',
+                        borderWidth: 4,
+                        pointBackgroundColor: '#10B981',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 3,
+                        pointRadius: 8,
+                        pointHoverRadius: 12,
+                        fill: true,
+                        tension: 0.4,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Form Quality (%)',
+                        data: sortedData.map(d => d.form_quality),
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: '#3B82F6',
+                        borderWidth: 4,
+                        pointBackgroundColor: '#3B82F6',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 3,
+                        pointRadius: 8,
+                        pointHoverRadius: 12,
+                        fill: false,
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' },
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#F8FAFC',
+                            bodyColor: '#E2E8F0',
+                            borderColor: '#3B82F6',
+                            borderWidth: 2,
+                            cornerRadius: 12,
+                            titleFont: { size: 16, weight: 'bold' },
+                            bodyFont: { size: 14 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Reps Completed',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                color: '#E2E8F0',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.3)',
+                                lineWidth: 1
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Form Quality (%)',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                color: '#E2E8F0',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: { drawOnChartArea: false }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Duration (seconds)',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                color: '#E2E8F0',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.2)',
+                                lineWidth: 1
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Efficiency Analysis Chart (Bubble Chart)
+            const ctx2 = document.getElementById('efficiencyChart').getContext('2d');
+            if (efficiencyChart) efficiencyChart.destroy();
+
+            efficiencyChart = new Chart(ctx2, {
+                type: 'bubble',
+                data: {
+                    datasets: [{
+                        label: 'Session Efficiency',
+                        data: sortedData.map(d => ({
+                            x: parseFloat(d.timer_time.split(':')[0]) * 60 + parseFloat(d.timer_time.split(':')[1]),
+                            y: d.reps_completed,
+                            r: Math.max(8, d.form_quality / 3)
+                        })),
+                        backgroundColor: 'rgba(236, 72, 153, 0.7)',
+                        borderColor: '#EC4899',
+                        borderWidth: 3,
+                        hoverBackgroundColor: 'rgba(236, 72, 153, 0.9)',
+                        hoverBorderColor: '#FFFFFF',
+                        hoverBorderWidth: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' },
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#F8FAFC',
+                            bodyColor: '#E2E8F0',
+                            borderColor: '#EC4899',
+                            borderWidth: 2,
+                            cornerRadius: 12,
+                            titleFont: { size: 16, weight: 'bold' },
+                            bodyFont: { size: 14 },
+                            callbacks: {
+                                label: function (context) {
+                                    const point = context.raw;
+                                    return [
+                                        `Time: ${Math.floor(point.x / 60)}:${(point.x % 60).toFixed(0).padStart(2, '0')}`,
+                                        `Reps: ${point.y}`,
+                                        `Form Quality: ${(point.r * 3).toFixed(0)}%`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (seconds)',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                color: '#E2E8F0',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.3)',
+                                lineWidth: 1
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Reps Completed',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                color: '#E2E8F0',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.3)',
+                                lineWidth: 1
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Comprehensive Performance Analysis Chart
+            const ctx3 = document.getElementById('comprehensiveChart').getContext('2d');
+            if (comprehensiveChart) comprehensiveChart.destroy();
+
+            comprehensiveChart = new Chart(ctx3, {
+                type: 'line',
+                data: {
+                    labels: sortedData.map(d => d.timer_time + 's'),
+                    datasets: [{
+                        label: 'Reps Completed',
+                        data: sortedData.map(d => d.reps_completed),
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.3)',
+                        borderWidth: 4,
+                        pointBackgroundColor: '#10B981',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 3,
+                        pointRadius: 8,
+                        pointHoverRadius: 12,
+                        fill: true,
+                        tension: 0.4,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Form Quality (%)',
+                        data: sortedData.map(d => d.form_quality),
+                        borderColor: '#F59E0B',
+                        backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                        borderWidth: 4,
+                        pointBackgroundColor: '#F59E0B',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 3,
+                        pointRadius: 8,
+                        pointHoverRadius: 12,
+                        fill: false,
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' },
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#F8FAFC',
+                            bodyColor: '#E2E8F0',
+                            borderColor: '#10B981',
+                            borderWidth: 2,
+                            cornerRadius: 12,
+                            titleFont: { size: 16, weight: 'bold' },
+                            bodyFont: { size: 14 },
+                            mode: 'nearest',
+                            intersect: false,
+                            callbacks: {
+                                label: function (context) {
+                                    const datasetLabel = context.dataset.label || '';
+                                    const value = context.parsed.y;
+                                    if (datasetLabel === 'Reps Completed') {
+                                        return `Reps: ${value}`;
+                                    } else if (datasetLabel === 'Form Quality (%)') {
+                                        return `Form Quality: ${value}%`;
+                                    }
+                                    return `${datasetLabel}: ${value}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Reps Completed',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                color: '#E2E8F0',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.3)',
+                                lineWidth: 1
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Form Quality (%)',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                color: '#E2E8F0',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: { drawOnChartArea: false }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Duration (seconds)',
+                                color: '#F8FAFC',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                color: '#E2E8F0',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.2)',
+                                lineWidth: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadResults();
+            showSitupChartAt(0);
+        });
+    </script>
+
+
+</body>
+
+</html>

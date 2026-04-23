@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepFit - Situps Counter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='situp-modern.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/exercise-common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/exercise-header.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="theme-color" content="#000000">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        /* Force a robust background that works in mobile webviews (some webviews override body backgrounds) */
+        html, body {
+            height: 100%;
+            background: linear-gradient(180deg, #0f1724 0%, #071428 100%) !important;
+            color: #e6f0ff !important;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-attachment: fixed;
+        }
+
+        /* Main container should be transparent so the gradient shows through */
+        .container {
+            background: transparent !important;
+            padding: 1rem;
+        }
+
+        /* Video and cards use a solid dark-blue surface for app webviews */
+        .video-section .video-container,
+        .timer-card,
+        .stats-card,
+        .instructions-card {
+            background: #071730 !important; /* solid dark-blue surface */
+            border: 1px solid rgba(255,255,255,0.04) !important;
+            box-shadow: 0 6px 18px rgba(2,6,23,0.45);
+            color: #e6f0ff !important;
+        }
+
+        /* Ensure placeholder text and icons remain visible */
+        .video-placeholder .placeholder-content h3,
+        .video-placeholder .placeholder-content p,
+        .stat-label,
+        .stat-value,
+        .timer-label,
+        .session-status,
+        .feedback {
+            color: #e6f0ff !important;
+            text-shadow: 0 2px 8px rgba(3,8,20,0.6);
+        }
+
+        /* Buttons use stronger contrast */
+        .btn-primary { background-color: #06b6d4 !important; border-color: #06b6d4 !important; }
+        .btn-secondary { background-color: #1f2937 !important; border-color: #374151 !important; color: #fff !important; }
+        .btn-warning { background-color: #f59e0b !important; border-color: #f59e0b !important; }
+        .btn-success { background-color: #10b981 !important; border-color: #10b981 !important; }
+
+        /* Small screens: increase tap target spacing */
+        @media (max-width: 480px) {
+            .controls .btn { padding: 12px 14px; font-size: 16px; }
+            .stat-item { gap: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-title">
+                    <h1 style="color: #06b6d4;"><span class="header-icon" >🏋️</span> Sit-Ups Counter</h1>
+                    <p>Your AI-powered personal trainer for perfect situps</p>
+                </div>
+                <a href="/" class="btn btn-secondary btn-back">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="btn-text">Back to Home</span>
+                </a>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="video-section">
+                <div class="video-container">
+                    <img id="video-feed" src="" alt="Camera feed will appear here" style="display: none;" 
+                         onerror="this.style.display='none'; document.getElementById('placeholder').style.display='flex';">
+                    <div id="placeholder" class="video-placeholder">
+                        <div class="placeholder-content">
+                            <h3>📹 Camera Ready</h3>
+                            <p>Click "Start Camera" to begin your situps session</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button id="verify-btn" class="btn btn-secondary" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                        <i class="fas fa-user-check"></i> Verify Identity
+                    </button>
+                    <button id="start-btn" class="btn btn-primary" disabled title="Verify identity first">Start Camera</button>
+                    <button id="stop-btn" class="btn btn-secondary" disabled>Stop Camera</button>
+                    <button id="reset-btn" class="btn btn-warning">Reset Counter</button>
+                    <button id="submit-btn" class="btn btn-success">Submit</button>
+                </div>
+                <!-- Hidden video for verification capture -->
+                <video id="verify-video" autoplay playsinline style="display:none;"></video>
+            </div>
+
+            <div class="stats-section">
+                <div class="timer-card">
+                    <h3>⏱️ Timer</h3>
+                    <div class="timer-display">
+                        <div class="time-remaining" id="timer-display">3:00</div>
+                        <div class="timer-label">Time Remaining</div>
+                        <div class="timer-progress">
+                            <div class="timer-progress-bar">
+                                <div class="timer-progress-fill" id="timer-progress"></div>
+                            </div>
+                        </div>
+                        <div class="session-status" id="session-status">Ready to start</div>
+                    </div>
+                </div>
+
+                <div class="stats-card">
+                    <h3>📊 Workout Stats</h3>
+                    
+                    <div class="stat-item">
+                        <div class="stat-label">Reps Completed</div>
+                        <div class="stat-value" id="reps-count">0</div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-label">Form Quality</div>
+                        <div class="stat-value" id="form-percentage">0%</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="form-progress"></div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-label">Identity Verified</div>
+                        <div class="feedback" id="identity-verified" style="text-shadow: 0 2px 8px rgba(3,8,20,0.6); color: #e6f0ff !important;">NO</div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-label">Feedback</div>
+                        <div class="feedback" id="feedback">Get Ready</div>
+                    </div>
+                </div>
+
+                <div class="instructions-card">
+                    <h3>📋 Instructions</h3>
+                    <ul>
+                        <li>Lie down on your back with knees bent</li>
+                        <li>Keep your feet flat on the ground</li>
+                        <li>Place hands behind your head</li>
+                        <li>Lift your torso towards your knees</li>
+                        <li>Lower back down slowly</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

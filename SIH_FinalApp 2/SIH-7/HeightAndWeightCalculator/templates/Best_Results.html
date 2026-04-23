@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}🏆 Best Results - Qualified Athletes{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Page-specific styles (kept compact) */
+    .results-wrapper {
+        padding: 20px 0;
+    }
+
+    .header-card {
+        text-align: center;
+        margin-bottom: 30px;
+        background: #071730;
+        padding: 25px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        box-shadow: 0 8px 24px rgba(2,6,23,0.5);
+        color: #e6eef9;
+    }
+
+    .header-card h1 { color: #22c55e; margin-bottom: 8px; }
+
+    .back-btn {
+        background: #0ea5ff;
+        color: #021026;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-bottom: 20px;
+        text-decoration: none;
+        display: inline-block;
+        box-shadow: 0 6px 18px rgba(2,6,23,0.4);
+    }
+
+    .results-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .result-card {
+        background: #071730;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        transition: transform 0.3s ease;
+        box-shadow: 0 10px 30px rgba(2,6,23,0.45);
+        color: #e6eef9;
+    }
+
+    .rank { font-size: 2rem; font-weight: bold; min-width: 60px; text-align: center; }
+    .profile-photo { width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,0.2); }
+
+    .user-info { flex:1; display:grid; grid-template-columns:1fr 1fr 1fr; gap:15px; }
+    .info-label { font-size:0.8rem; color:#94a3b8; margin-bottom:2px; }
+    .info-value { font-weight:600; color:#e6eef9; }
+
+    .score-highlight { background: linear-gradient(45deg,#22c55e,#16a34a); padding:15px; border-radius:8px; min-width:120px; color:#021026; box-shadow:0 6px 18px rgba(2,6,23,0.35); }
+
+    .loading, .no-results { text-align:center; padding:40px; color:#cbd5e1; background:rgba(255,255,255,0.02); border-radius:8px; }
+
+    @media (max-width:768px) {
+        .result-card { flex-direction:column; text-align:center; }
+        .user-info { grid-template-columns:1fr; gap:10px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="results-wrapper">
+    <div class="container results-container">
+        <a href="{{ url_for('index') }}" class="back-btn">← Back to Home</a>
+
+        <div class="header-card">
+            <h1>🏆 Best Results - Qualified Athletes</h1>
+            <p>Top performers ranked by average score and completion time</p>
+        </div>
+
+        <div id="results-list">
+            <div class="loading">Loading qualified results...</div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function loadBestResults() {
+    try {
+    const res = await fetch('/api/best_results');
+        const data = await res.json();
+        const container = document.getElementById('results-list');
+
+        if (!data.success) {
+            container.innerHTML = `<div class="no-results">Error: ${data.error}</div>`;
+            return;
+        }
+
+        if (!data.results || data.results.length === 0) {
+            container.innerHTML = `
+                <div class="no-results">
+                    <h3>No qualified results yet</h3>
+                    <p>Complete the fitness assessments and qualify to appear on this leaderboard!</p>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = data.results.map((result, index) => {
+            const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : 'other';
+            const rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${result.rank}`;
+
+            return `
+                <div class="result-card">
+                    <div class="rank ${rankClass}">${rankIcon}</div>
+                    <img src="${result.photo || '/static/images/default-avatar.png'}" alt="Profile" class="profile-photo" onerror="this.src='/static/images/default-avatar.png'">
+                    <div class="user-info">
+                        <div class="info-item"><span class="info-label">👤 Name</span><span class="info-value">${result.name}</span></div>
+                        <div class="info-item"><span class="info-label">⏱️ Time</span><span class="info-value">${result.time_duration}</span></div>
+                        <div class="info-item"><span class="info-label">🏋️ Situps</span><span class="info-value">${result.Situps_per_min}</span></div>
+                        <div class="info-item"><span class="info-label">🦵 Jump</span><span class="info-value">${result.Vertical_Jump_cm} cm</span></div>
+                        <div class="info-item"><span class="info-label">💪 Dumbbell</span><span class="info-value">${result.Dumbbell_Curl_per_min}</span></div>
+                        <div class="info-item"><span class="info-label">📏 Height/Weight</span><span class="info-value">${result.height}cm / ${result.weight}kg</span></div>
+                    </div>
+                    <div class="score-highlight"><div class="score-value">${result.average_score}</div><div class="score-label">Average Score</div></div>
+                </div>`;
+        }).join('');
+
+    } catch (err) {
+        document.getElementById('results-list').innerHTML = `<div class="no-results">Error loading results: ${err.message}</div>`;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadBestResults);
+</script>
+{% endblock %}

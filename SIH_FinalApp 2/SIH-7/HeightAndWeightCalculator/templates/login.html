@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Login - DeepFit{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card glass animate__animated animate__fadeIn">
+                <div class="card-body p-4 p-sm-5">
+                    <h2 class="text-center mb-4">
+                        <i class="fas fa-sign-in-alt me-2"></i> Login
+                    </h2>
+                    <form method="POST" action="{{ url_for('login') }}" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope me-2"></i>Email
+                            </label>
+                            <input type="email" class="form-control form-control-lg" id="email" name="email" required>
+                            <div class="invalid-feedback">
+                                Please enter a valid email address.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">
+                                <i class="fas fa-lock me-2"></i>Password
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <input type="password" class="form-control" id="password" name="password" required>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback">
+                                Please enter your password.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                                <label class="form-check-label" for="remember">Remember me</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-glass w-100 btn-lg mb-3">
+                            <i class="fas fa-sign-in-alt me-2"></i> Login
+                        </button>
+                    </form>
+                    <hr class="my-4">
+                    <div class="text-center">
+                        <p class="mb-0">Don't have an account?</p>
+                        <a href="{{ url_for('signup') }}" class="btn btn-link btn-lg">
+                            Create Account <i class="fas fa-user-plus ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('togglePassword').addEventListener('click', function() {
+    const password = document.getElementById('password');
+    const icon = this.querySelector('i');
+    
+    if (password.type === 'password') {
+        password.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        password.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.container {
+    margin-top: 100px;
+}
+
+.card.glass {
+    background: rgba(0, 0, 0, 0.8) !important;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.btn-link {
+    color: var(--primary-color);
+}
+
+.btn-link:hover {
+    color: var(--secondary-color);
+    text-decoration: none;
+}
+
+.input-group-append .btn {
+    border-color: var(--glass-border);
+    color: var(--text-primary);
+}
+
+.input-group-append .btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.form-control {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.form-control:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(0, 170, 255, 0.25);
+    color: var(--text-primary);
+}
+
+hr {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+label {
+    color: #f8f9fa;
+}
+</style>
+{% endblock %}

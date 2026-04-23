@@ -1,0 +1,47 @@
+{
+  "session_start": "2025-09-15T19:04:50.404033",
+  "total_jumps": 3,
+  "max_height": 113.87466613353254,
+  "calibration_data": {
+    "pixels_per_cm": 1.1220434333534957,
+    "baseline_y": 717.3184132575989
+  },
+  "jumps": [
+    {
+      "timestamp": "2025-09-15T19:06:19.492707",
+      "height_cm": 113.87,
+      "jump_number": 1,
+      "body_angle": -0.9384704826453362,
+      "knee_angles": {
+        "left": 177.7848419713935,
+        "right": 175.33633905068865
+      },
+      "confidence": 0.9861114621162415,
+      "pixels_per_cm": 1.1220434333534957
+    },
+    {
+      "timestamp": "2025-09-15T19:06:45.440011",
+      "height_cm": 89.11,
+      "jump_number": 2,
+      "body_angle": -0.3155569083148028,
+      "knee_angles": {
+        "left": 178.3926713432101,
+        "right": 173.54917636577616
+      },
+      "confidence": 0.8134113550186157,
+      "pixels_per_cm": 1.1220434333534957
+    },
+    {
+      "timestamp": "2025-09-15T19:07:12.160656",
+      "height_cm": 113.27,
+      "jump_number": 3,
+      "body_angle": 1.3214500768957447,
+      "knee_angles": {
+        "left": 178.29571776482732,
+        "right": 178.44805711212805
+      },
+      "confidence": 0.927574098110199,
+      "pixels_per_cm": 1.1220434333534957
+    }
+  ]
+}

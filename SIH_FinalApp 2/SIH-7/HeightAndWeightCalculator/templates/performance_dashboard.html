@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Height & Weight Analysis Results - DeepFit</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/dashboard-enhancements.css') }}" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 40px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .result-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .height-card .card-icon {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .weight-card .card-icon {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+        }
+
+        .bmi-card .card-icon {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+
+        .confidence-card .card-icon {
+            background: linear-gradient(135deg, #43e97b, #38f9d7);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .card-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .card-unit {
+            font-size: 1rem;
+            color: #888;
+            font-weight: 500;
+        }
+
+        .card-subtitle {
+            font-size: 0.9rem;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        .bmi-status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+
+        .bmi-normal {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .bmi-underweight {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .bmi-overweight {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .bmi-obese {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #43e97b, #38f9d7);
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        .stats-section {
+            background: #f8f9fa;
+            padding: 40px;
+            border-top: 1px solid #eee;
+        }
+
+        .stats-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #4facfe;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .actions {
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #666;
+            border: 2px solid #ddd;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            text-align: center;
+            padding: 60px;
+            color: #d32f2f;
+        }
+
+        .error i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .card-value {
+                font-size: 2rem;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-chart-line"></i> Height & Weight Analysis</h1>
+            <p>Your comprehensive body measurement results</p>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <h3>Loading your results...</h3>
+            <p>Please wait while we fetch your latest measurements</p>
+        </div>
+
+        <div id="error" class="error" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>No Results Found</h3>
+            <p>We couldn't find any measurement data. Please complete a measurement first.</p>
+        </div>
+
+        <div id="results" style="display: none;">
+            <div class="results-grid">
+                <div class="result-card height-card">
+                    <div class="card-icon">
+                        <i class="fas fa-ruler-vertical"></i>
+                    </div>
+                    <div class="card-title">Height</div>
+                    <div class="card-value" id="height-value">--</div>
+                    <div class="card-unit">centimeters</div>
+                    <div class="card-subtitle" id="height-uncertainty">Uncertainty: ±-- cm</div>
+                </div>
+
+                <div class="result-card weight-card">
+                    <div class="card-icon">
+                        <i class="fas fa-weight"></i>
+                    </div>
+                    <div class="card-title">Weight</div>
+                    <div class="card-value" id="weight-value">--</div>
+                    <div class="card-unit">kilograms</div>
+                    <div class="card-subtitle" id="weight-uncertainty">Uncertainty: ±-- kg</div>
+                </div>
+
+                <div class="result-card bmi-card">
+                    <div class="card-icon">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <div class="card-title">Body Mass Index</div>
+                    <div class="card-value" id="bmi-value">--</div>
+                    <div class="card-unit">BMI</div>
+                    <div class="bmi-status" id="bmi-status">Normal</div>
+                </div>
+
+               <!--- <div class="result-card confidence-card">
+                    <div class="card-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="card-title">Confidence Level</div>
+                    <div class="card-value" id="confidence-value">--</div>
+                    <div class="card-unit">percent</div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="confidence-fill"></div>
+                    </div>
+                </div> !-->
+            </div>
+
+            <div class="stats-section">
+                <h3 class="stats-title">Measurement Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-measurements">--</div>
+                        <div class="stat-label">Total Measurements</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="measurement-date">--</div>
+                        <div class="stat-label">Last Measured</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="calibration-quality">--</div>
+                        <div class="stat-label">Calibration Quality</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="processing-time">--</div>
+                        <div class="stat-label">Processing Time (ms)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <a href="/" class="btn btn-primary">
+                    <i class="fas fa-home"></i> Back to Dashboard
+                </a>
+                <a href="/height" class="btn btn-secondary">
+                    <i class="fas fa-redo"></i> New Measurement
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to get BMI status and color
+        function getBMIStatus(bmi) {
+            if (bmi < 18.5) {
+                return { status: 'Underweight', class: 'bmi-underweight' };
+            } else if (bmi >= 18.5 && bmi < 25) {
+                return { status: 'Normal', class: 'bmi-normal' };
+            } else if (bmi >= 25 && bmi < 30) {
+                return { status: 'Overweight', class: 'bmi-overweight' };
+            } else {
+                return { status: 'Obese', class: 'bmi-obese' };
+            }
+        }
+
+        // Function to format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Function to animate numbers
+        function animateNumber(element, targetValue, suffix = '') {
+            const startValue = 0;
+            const duration = 1500;
+            const startTime = performance.now();
+
+            function updateNumber(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Easing function
+                const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                const currentValue = startValue + (targetValue - startValue) * easeOutQuart;
+                
+                element.textContent = currentValue.toFixed(1) + suffix;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateNumber);
+                }
+            }
+            
+            requestAnimationFrame(updateNumber);
+        }
+
+        // Function to load and display results
+        async function loadResults() {
+            try {
+                const response = await fetch('/api/get_latest_measurement');
+                const data = await response.json();
+
+                if (data.success && data.data) {
+                    const result = data.data;
+                    
+                    // Hide loading, show results
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('results').style.display = 'block';
+
+                    // Animate height
+                    animateNumber(document.getElementById('height-value'), result.final_height_cm || result.height_cm);
+                    document.getElementById('height-uncertainty').textContent = 
+                        `Uncertainty: ±${(result.height_uncertainty || 2.0).toFixed(1)} cm`;
+
+                    // Animate weight
+                    animateNumber(document.getElementById('weight-value'), result.final_weight_kg || result.weight_kg);
+                    document.getElementById('weight-uncertainty').textContent = 
+                        `Uncertainty: ±${(result.weight_uncertainty || 3.0).toFixed(1)} kg`;
+
+                    // Calculate and display BMI
+                    const height_m = (result.final_height_cm || result.height_cm) / 100;
+                    const bmi = (result.final_weight_kg || result.weight_kg) / (height_m * height_m);
+                    animateNumber(document.getElementById('bmi-value'), bmi);
+                    
+                    const bmiInfo = getBMIStatus(bmi);
+                    const bmiStatusElement = document.getElementById('bmi-status');
+                    bmiStatusElement.textContent = bmiInfo.status;
+                    bmiStatusElement.className = `bmi-status ${bmiInfo.class}`;
+
+                    // Display confidence
+                    const confidence = (result.confidence_score || 0.8) * 100;
+                    animateNumber(document.getElementById('confidence-value'), confidence, '%');
+                    
+                    // Animate confidence bar
+                    setTimeout(() => {
+                        document.getElementById('confidence-fill').style.width = confidence + '%';
+                    }, 500);
+
+                    // Display statistics
+                    document.getElementById('total-measurements').textContent = result.total_instances || 1;
+                    document.getElementById('measurement-date').textContent = 
+                        formatDate(result.timestamp || new Date().toISOString());
+                    document.getElementById('calibration-quality').textContent = 
+                        result.calibration_quality ? result.calibration_quality.toFixed(2) + 'px' : 'Good';
+                    document.getElementById('processing-time').textContent = 
+                        result.processing_time_ms ? Math.round(result.processing_time_ms) : '150';
+
+                    // Add pulse animation to cards
+                    document.querySelectorAll('.result-card').forEach((card, index) => {
+                        setTimeout(() => {
+                            card.classList.add('pulse');
+                            setTimeout(() => card.classList.remove('pulse'), 2000);
+                        }, index * 200);
+                    });
+
+                } else {
+                    throw new Error('No measurement data found');
+                }
+            } catch (error) {
+                console.error('Error loading results:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+            }
+        }
+
+        // Load results when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add a small delay for better UX
+            setTimeout(loadResults, 1000);
+        });
+
+        // Auto-refresh every 30 seconds if still loading
+        setInterval(() => {
+            if (document.getElementById('loading').style.display !== 'none') {
+                loadResults();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

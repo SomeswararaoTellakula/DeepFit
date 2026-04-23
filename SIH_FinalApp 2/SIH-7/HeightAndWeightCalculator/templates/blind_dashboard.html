@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Blind Person Assessment Results{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/blind-assessment.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="container">
+        <h1 class="dashboard-title">Assessment Results Dashboard</h1>
+        
+        <div class="user-info-card">
+            <h2 class="test-title">User Details</h2>
+            <img src="{{ user.photo }}" alt="User Photo" class="user-photo">
+            
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Name</div>
+                    <div class="info-value">{{ user.name }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Age</div>
+                    <div class="info-value">{{ user.age }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Gender</div>
+                    <div class="info-value">{{ user.gender }}</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 2rem;">
+                <div class="info-label">Disability Certificate</div>
+                <img src="{{ user.certificate }}" alt="Certificate" class="certificate-preview">
+            </div>
+        </div>
+        
+        <div class="test-results-card">
+            <h2 class="test-title">Test 1: Audio Reaction Test Results</h2>
+            <div class="score-display">
+                <div class="score-item">
+                    <div class="score-label">Score</div>
+                    <div class="score-value">{{ results.test1.score }}/{{ results.test1.total }}</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">Accuracy</div>
+                    <div class="score-value">{{ results.test1.accuracy }}%</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">Avg Response Time</div>
+                    <div class="score-value">{{ results.test1.avgTime }}s</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-results-card">
+            <h2 class="test-title">Test 2: Audio Q&A Test Results</h2>
+            <div class="score-display">
+                <div class="score-item">
+                    <div class="score-label">Score</div>
+                    <div class="score-value">{{ results.test2.score }}/{{ results.test2.total }}</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">Accuracy</div>
+                    <div class="score-value">{{ results.test2.accuracy }}%</div>
+                </div>
+            </div>
+            <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(0, 170, 255, 0.1); border-radius: 10px;">
+                <div class="info-label">Performance Evaluation</div>
+                <div class="info-value">{{ results.test2.evaluation }}</div>
+            </div>
+        </div>
+        
+        <div class="test-results-card">
+            <h2 class="test-title">Overall Performance Summary</h2>
+            <div class="score-display">
+                <div class="score-item">
+                    <div class="score-label">Total Score</div>
+                    <div class="score-value">{{ results.totalScore }}/{{ results.totalQuestions }}</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">Overall Performance</div>
+                    <div class="score-value">{{ results.overall }}</div>
+                </div>
+            </div>
+            
+            {% if results.qualified %}
+            <div class="qualification-success">
+                <div class="qualification-icon">🎉</div>
+                <div class="qualification-title" style="color: #00ff88;">QUALIFIED</div>
+                <div class="qualification-message">{{ results.qualificationMessage }}</div>
+            </div>
+            {% else %}
+            <div class="qualification-failure">
+                <div class="qualification-icon">❌</div>
+                <div class="qualification-title" style="color: #ff6b6b;">NOT QUALIFIED</div>
+                <div class="qualification-message">{{ results.qualificationMessage }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

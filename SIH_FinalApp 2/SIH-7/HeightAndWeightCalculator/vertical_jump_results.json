@@ -1,0 +1,22 @@
+{
+    "timestamp": "20250916_010555",
+    "exercise_type": "vertical_jump",
+    "total_jumps": 4,
+    "jump_heights_percent": [
+        18.113706938606654,
+        6.90017198514332,
+        36.966309480872944,
+        23.738203811554097
+    ],
+    "hang_times_seconds": [
+        1.4047296047210693,
+        0.13611936569213867,
+        1.0577657222747803,
+        0.8347325325012207
+    ],
+    "max_jump_height_percent": 36.966309480872944,
+    "average_jump_height_percent": 21.429598054044252,
+    "average_hang_time_seconds": 0.8583368062973022,
+    "session_duration_seconds": 29.700056552886963,
+    "analysis_date": "2025-09-16T01:05:55.238694"
+}

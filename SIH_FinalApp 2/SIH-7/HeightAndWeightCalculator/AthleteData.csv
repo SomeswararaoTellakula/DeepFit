@@ -1,0 +1,5 @@
+Athlete_ID,Name,Age,Gender,Height_cm,Weight_kg,Situps_per_min,Vertical_Jump_cm,Dumbbell_Curl_per_min
+1,Athlete_1,20,M,174.94,68.3,3,5,3
+2,Athlete_2,32,F,188.0,70.0,4,4,5
+3,Athlete_3,28,M,151.0,69.0,4,5,4
+3,Athlete_3,28,M,178.0,69.0,4,5,4

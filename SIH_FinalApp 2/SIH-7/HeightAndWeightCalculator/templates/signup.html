@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}DeepFit - Create Account{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="glass-card animate__animated animate__fadeIn">
+                <h2 class="text-center mb-4">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </h2>
+                
+                {% if error %}
+                <div class="alert alert-glass fade show" role="alert">
+                    <i class="fas fa-exclamation-circle"></i> {{ error }}
+                </div>
+                {% endif %}
+                
+                <form method="POST" action="{{ url_for("signup") }}" id="signup-form" class="fade-in needs-validation" novalidate>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control form-control-lg bg-dark text-light" id="name" name="name" placeholder="Enter your full name" required>
+                                <label for="name"><i class="fas fa-user me-2"></i> Full Name</label>
+                                <div class="invalid-feedback">
+                                    Please provide your full name.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 col-md-6">
+                            <div class="form-floating">
+                                <input type="number" class="form-control form-control-lg bg-dark text-light" id="age" name="age" placeholder="Enter your age" required>
+                                <label for="age"><i class="fas fa-birthday-cake me-2"></i> Age</label>
+                                <div class="invalid-feedback">
+                                    Please provide your age.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-2">
+                        <div class="col-12 col-md-6">
+                            <div class="form-floating">
+                                <select class="form-select form-select-lg bg-dark text-light" id="gender" name="gender" required>
+                                    <option value="" selected disabled>Select your gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <label for="gender"><i class="fas fa-venus-mars me-2"></i> Gender</label>
+                                <div class="invalid-feedback">
+                                    Please select your gender.
+                                </div>
+                            </div>
+                        </div>
+
+                        <style>
+                            #gender {
+    background-color: #222 !important;  /* dark background */
+    color: #fff !important;             /* white text */
+    border: 1px solid #444;
+    line-height: 1.5em;                 /* fixes text clipping */
+    padding: 8px;                       /* proper spacing */
+    font-size: 16px;                    /* readable font */
+  }
+
+  #gender option {
+    background-color: #222;
+    color: #fff;
+    padding: 5px;
+  }
+
+  #gender option:hover {
+    background-color: #444;
+    color: #fff;
+  }
+
+  #gender option:checked {
+    background-color: #0066cc;
+    color: #fff;
+  }
+</style>
+                        </style>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="form-group">
+                                <label for="place"><i class="fas fa-map-marker-alt"></i> Place</label>
+                                <input type="text" class="form-control" id="place" name="place" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12 col-md-6">
+                            <div class="form-floating">
+                                <input type="tel" class="form-control form-control-lg bg-dark text-light" id="phone" name="phone" placeholder="Enter your phone number" required pattern="[0-9]{10}">
+                                <label for="phone"><i class="fas fa-phone me-2"></i> Phone Number</label>
+                                <div class="invalid-feedback">
+                                    Please provide a valid phone number.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 col-md-6">
+                            <div class="form-floating">
+                                <input type="email" class="form-control form-control-lg bg-dark text-light" id="email" name="email" placeholder="Enter your email" required>
+                                <label for="email"><i class="fas fa-envelope me-2"></i> Email address</label>
+                                <div class="invalid-feedback">
+                                    Please provide a valid email address.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-2">
+                        <div class="col-12">
+                            <div class="form-floating">
+                                <input type="password" class="form-control form-control-lg bg-dark text-light" id="password" name="password" placeholder="Enter your password" required>
+                                <label for="password"><i class="fas fa-lock me-2"></i> Password</label>
+                                <div class="invalid-feedback">
+                                    Please provide a password.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Photo Capture Section -->
+                    <div class="mt-4">
+                        <label class="form-label"><i class="fas fa-camera me-2"></i> Photo Capture</label>
+                        <div id="camera-container" class="glass-card p-3 rounded">
+                            <video id="video" class="w-100 rounded mb-2" autoplay playsinline></video>
+                            <canvas id="canvas" class="d-none"></canvas>
+                            <img id="photo-preview" class="w-100 rounded mb-2" alt="Your captured photo" style="display: none;">
+                            <input type="hidden" id="photo-data" name="photo_data">
+                            <button type="button" id="capture-btn" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-camera me-2"></i> Take Photo
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-glass w-100 mb-3">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </button>
+
+                    <div class="text-center mt-3">
+                        <p>Already have an account? 
+                            <a href="{{ url_for("login") }}" class="text-primary">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
+                        </p>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('disabled_selection') }}" class="btn btn-lg btn-outline-info w-100" style="border: 2px solid #00aaff; color: #00aaff; padding: 1rem; border-radius: 10px; font-weight: 600; transition: all 0.3s;" onmouseover="this.style.background='#00aaff'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#00aaff';">
+                            <i class="fas fa-wheelchair"></i> Disabled Persons
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Camera functionality
+        const video = document.getElementById("video");
+        const canvas = document.getElementById("canvas");
+        const photoPreview = document.getElementById("photo-preview");
+        const captureBtn = document.getElementById("capture-btn");
+        const photoData = document.getElementById("photo-data");
+        const context = canvas.getContext("2d");
+        let stream;
+
+        // Access the camera
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error("Error accessing camera:", err);
+                alert("Unable to access camera. Please ensure camera permissions are enabled.");
+            }
+        }
+
+        // Start camera when page loads
+        window.addEventListener("load", startCamera);
+
+        // Capture photo when button is clicked
+        captureBtn.addEventListener("click", function() {
+            // Set canvas dimensions to match video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Draw current video frame to canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Convert canvas to data URL (base64 image)
+            const imageDataURL = canvas.toDataURL("image/jpeg");
+            
+            // Display the captured photo
+            photoPreview.src = imageDataURL;
+            photoPreview.style.display = "block";
+            video.style.display = "none";
+            
+            // Store the image data in the hidden input
+            photoData.value = imageDataURL;
+            
+            // Update button text
+            captureBtn.innerHTML = "<i class=\"fas fa-redo\"></i> Retake Photo";
+            captureBtn.addEventListener("click", function() {
+                video.style.display = "block";
+                photoPreview.style.display = "none";
+                photoData.value = "";
+                this.innerHTML = "<i class=\"fas fa-camera\"></i> Take Photo";
+            }, { once: true });
+        });
+
+        // Clean up camera resources when leaving the page
+        window.addEventListener("beforeunload", function() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        });
+
+        // Form validation
+        const form = document.getElementById("signup-form");
+        form.addEventListener("submit", function(e) {
+            if (!photoData.value) {
+                e.preventDefault();
+                alert("Please capture your photo before continuing.");
+            }
+        });
+
+        // Add animation to form inputs
+        const inputs = document.querySelectorAll(".form-control");
+        inputs.forEach(input => {
+            input.addEventListener("focus", function() {
+                this.closest(".form-group").classList.add("animate__animated", "animate__pulse");
+            });
+            
+            input.addEventListener("blur", function() {
+                this.closest(".form-group").classList.remove("animate__animated", "animate__pulse");
+            });
+        });
+    });
+</script>
+{% endblock %}

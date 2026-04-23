@@ -1,0 +1,33 @@
+[2026-03-30 01:20:03,375] INFO in error_logger: Starting DeepFit application
+[2026-03-30 01:20:28,959] INFO in _internal: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2026-03-30 01:20:28,959] INFO in _internal: [33mPress CTRL+C to quit[0m
+[2026-03-30 01:20:28,979] INFO in _internal:  * Restarting with watchdog (windowsapi)
+[2026-03-30 01:20:29,672] INFO in error_logger: Starting DeepFit application
+[2026-03-30 01:20:36,751] WARNING in _internal:  * Debugger is active!
+[2026-03-30 01:20:36,756] INFO in _internal:  * Debugger PIN: 134-714-876
+[2026-03-30 01:20:37,059] INFO in error_logger: GET http://127.0.0.1:5000/
+[2026-03-30 01:20:37,196] INFO in _internal: 127.0.0.1 - - [30/Mar/2026 01:20:37] "GET / HTTP/1.1" 200 -
+[2026-03-30 01:20:37,215] INFO in error_logger: GET http://127.0.0.1:5000/static/css/style.css
+[2026-03-30 01:20:37,217] INFO in error_logger: GET http://127.0.0.1:5000/static/images/logo_sai.jpg
+[2026-03-30 01:20:37,219] INFO in error_logger: GET http://127.0.0.1:5000/static/images/image.png
+[2026-03-30 01:20:37,224] INFO in error_logger: GET http://127.0.0.1:5000/static/images/image1.png
+[2026-03-30 01:20:37,225] INFO in error_logger: GET http://127.0.0.1:5000/static/images/image2.png
+[2026-03-30 01:20:37,228] INFO in error_logger: GET http://127.0.0.1:5000/static/js/main.js
+[2026-03-30 01:20:37,558] INFO in _internal: 127.0.0.1 - - [30/Mar/2026 01:20:37] "GET /static/css/style.css HTTP/1.1" 200 -
+[2026-03-30 01:20:37,563] INFO in error_logger: GET http://127.0.0.1:5000/static/images/hero-bg.png
+[2026-03-30 01:20:37,565] WARNING in error_logger: Warning: Page not found: http://127.0.0.1:5000/static/images/hero-bg.png
+[2026-03-30 01:20:37,581] INFO in _internal: 127.0.0.1 - - [30/Mar/2026 01:20:37] "[33mGET /static/images/hero-bg.png HTTP/1.1[0m" 404 -
+[2026-03-30 01:20:37,600] INFO in _internal: 127.0.0.1 - - [30/Mar/2026 01:20:37] "GET /static/images/logo_sai.jpg HTTP/1.1" 200 -
+[2026-03-30 01:20:37,606] INFO in _internal: 127.0.0.1 - - [30/Mar/2026 01:20:37] "GET /static/js/main.js HTTP/1.1" 200 -
+[2026-03-30 01:20:37,611] INFO in _internal: 127.0.0.1 - - [30/Mar/2026 01:20:37] "GET /static/images/image1.png HTTP/1.1" 200 -
+[2026-03-30 01:20:37,612] INFO in _internal: 127.0.0.1 - - [30/Mar/2026 01:20:37] "GET /static/images/image.png HTTP/1.1" 200 -
+[2026-03-30 01:20:37,617] INFO in _internal: 127.0.0.1 - - [30/Mar/2026 01:20:37] "GET /static/images/image2.png HTTP/1.1" 200 -
+[2026-03-30 12:57:02,497] INFO in error_logger: Starting DeepFit application
+[2026-03-30 12:57:54,093] INFO in _internal: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2026-03-30 12:57:54,094] INFO in _internal: [33mPress CTRL+C to quit[0m
+[2026-03-30 12:57:54,115] INFO in _internal:  * Restarting with watchdog (windowsapi)
+[2026-03-30 12:57:54,854] INFO in error_logger: Starting DeepFit application
+[2026-03-30 12:58:03,365] WARNING in _internal:  * Debugger is active!
+[2026-03-30 12:58:03,371] INFO in _internal:  * Debugger PIN: 134-714-876

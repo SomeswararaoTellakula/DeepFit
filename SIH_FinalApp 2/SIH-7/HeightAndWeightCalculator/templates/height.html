@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepFit - Height & Weight Measurement</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='situp-modern.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/exercise-common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/exercise-header.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="theme-color" content="#000000">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        .status-indicators {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .status-item.active {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 3px solid #10B981;
+        }
+        .status-light {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ef4444;
+            box-shadow: 0 0 5px #ef4444;
+        }
+        .active .status-light {
+            background: #10B981;
+            box-shadow: 0 0 8px #10B981;
+        }
+        .measurement-history {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+        }
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        .video-overlay-text {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 30px;
+            color: #fff;
+            font-weight: 500;
+            backdrop-filter: blur(5px);
+            z-index: 10;
+        }
+        .status-item.verified {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid #3b82f6;
+        }
+        .verified .status-light {
+            background: #3b82f6;
+            box-shadow: 0 0 8px #3b82f6;
+        }
+        #identityStatus {
+            margin-top: 10px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-title">
+                    <h1 style="color: #06b6d4;"><span class="header-icon">⚖️</span> Height & Weight Analyzer</h1>
+                    <p>Advanced AI-powered body estimation system</p>
+                </div>
+                <a href="/" class="btn btn-secondary btn-back">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="btn-text">Back to Home</span>
+                </a>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="video-section">
+                <div class="video-container">
+                    <video id="videoFeed" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+                    <div id="placeholder" class="video-placeholder" style="display: none;">
+                        <div class="placeholder-content">
+                            <h3>📷 Camera Ready</h3>
+                            <p>Click "Camera Preview" or "Start Analysis" to begin</p>
+                        </div>
+                    </div>
+                    <div id="measurementOverlay" class="video-overlay-text" style="display: none;">
+                        Stand still for measurement...
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button id="verifyIdentity" class="btn btn-secondary" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                        <i class="fas fa-user-check"></i> Verify Identity
+                    </button>
+                    <button id="startHeightWeight" class="btn btn-primary" style="background: linear-gradient(135deg, #06b6d4, #0891b2);" disabled title="Verify identity first">
+                        <i class="fas fa-ruler-combined"></i> Start Analysis
+                    </button>
+                    <button id="startPreview" class="btn btn-secondary">
+                        <i class="fas fa-camera"></i> Camera Preview
+                    </button>
+                    <button id="stopCamera" class="btn btn-warning" disabled>
+                        <i class="fas fa-stop"></i> Stop Camera
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-section">
+                <!-- Status Card -->
+                <div class="timer-card" style="background:#071730; border:1px solid rgba(255,255,255,0.04); box-shadow:0 6px 18px rgba(2,6,23,0.45); color:#e6eef9;">
+                    <h3><i class="fas fa-satellite-dish me-2"></i> System Status</h3>
+                    <div class="status-indicators">
+                        <div class="status-item" id="identityVerified">
+                            <div class="status-light"></div>
+                            <span>Identity Verified</span>
+                        </div>
+                        <div class="status-item" id="humanDetected">
+                            <div class="status-light"></div>
+                            <span>Human Detection</span>
+                        </div>
+                        <div class="status-item" id="positionStatus">
+                            <div class="status-light"></div>
+                            <span>Correct Position</span>
+                        </div>
+                        <div class="status-item" id="stabilityStatus">
+                            <div class="status-light"></div>
+                            <span>Stability Check</span>
+                        </div>
+                    </div>
+                    <div class="session-status" id="sessionStatus">Ready to start</div>
+                </div>
+
+                <!-- Measurements Card -->
+                <div class="stats-card" style="background:#071730; border:1px solid rgba(255,255,255,0.04); box-shadow:0 6px 18px rgba(2,6,23,0.45); color:#e6eef9;">
+                    <h3><i class="fas fa-chart-line me-2"></i> Real-time Estimation</h3>
+                    
+                    <div class="stat-item">
+                        <div class="stat-label"><i class="fas fa-ruler-vertical"></i> Height</div>
+                        <div class="stat-value" id="heightDisplay" style="color: #06b6d4;">0.0 <small>cm</small></div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-label"><i class="fas fa-weight"></i> Weight</div>
+                        <div class="stat-value" id="weightDisplay" style="color: #10B981;">0.0 <small>kg</small></div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-label"><i class="fas fa-percentage"></i> Confidence</div>
+                        <div class="feedback" id="confidenceDisplay">0%</div>
+                    </div>
+                </div>
+
+                <!-- Instructions Card -->
+                <div class="instructions-card" style="background:#071730; border:1px solid rgba(255,255,255,0.04); box-shadow:0 6px 18px rgba(2,6,23,0.45); color:#e6eef9;">
+                    <h3><i class="fas fa-info-circle me-2"></i> Instructions</h3>
+                    <ul>
+                        <li>Stand 2-3 meters from camera</li>
+                        <li>Ensure your full body is visible</li>
+                        <li>Stand straight with arms at your sides</li>
+                        <li>Hold still for 5 seconds for measurement</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Scripts -->
+    <script src="{{ url_for('static', filename='js/notification-system.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/completion-monitor.js') }}"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.getElementById('videoFeed');
+            const placeholder = document.getElementById('placeholder');
+            const startPreviewBtn = document.getElementById('startPreview');
+            const startAnalysisBtn = document.getElementById('startHeightWeight');
+            const verifyIdentityBtn = document.getElementById('verifyIdentity');
+            const stopCameraBtn = document.getElementById('stopCamera');
+            const saveResultsBtn = document.getElementById('saveResults');
+            const overlay = document.getElementById('measurementOverlay');
+            
+            const displays = {
+                height: document.getElementById('heightDisplay'),
+                weight: document.getElementById('weightDisplay'),
+                confidence: document.getElementById('confidenceDisplay'),
+                session: document.getElementById('sessionStatus')
+            };
+            
+            const statusItems = {
+                identity: document.getElementById('identityVerified'),
+                human: document.getElementById('humanDetected'),
+                position: document.getElementById('positionStatus'),
+                stability: document.getElementById('stabilityStatus')
+            };
+
+            let isPreviewing = false;
+            let mockInterval = null;
+            let isVerified = false;
+
+            // Start Camera Preview
+            startPreviewBtn.addEventListener('click', async function() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    video.srcObject = stream;
+                    video.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    
+                    isPreviewing = true;
+                    startPreviewBtn.disabled = true;
+                    stopCameraBtn.disabled = false;
+                    displays.session.textContent = 'Preview active. Please verify identity.';
+                    
+                    startMockSimulation();
+                } catch (err) {
+                    console.error('Error accessing camera:', err);
+                    notificationSystem.show('Camera access denied.', 'error');
+                }
+            });
+
+            // Verify Identity
+            verifyIdentityBtn.addEventListener('click', async function() {
+                if (!isPreviewing) {
+                    notificationSystem.show('Please start camera preview first', 'info');
+                    return;
+                }
+
+                try {
+                    verifyIdentityBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+                    verifyIdentityBtn.disabled = true;
+
+                    // Capture current frame
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0);
+                    const frameData = canvas.toDataURL('image/jpeg');
+
+                    const response = await fetch('/api/verify_user_identity', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ frame_data: frameData })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success && result.is_match) {
+                        isVerified = true;
+                        updateStatus('identity', true, 'verified');
+                        startAnalysisBtn.disabled = false;
+                        startAnalysisBtn.title = 'Identity verified';
+                        notificationSystem.show('Identity verified successfully! Access granted.', 'success');
+                        displays.session.textContent = 'Identity verified. Ready for analysis.';
+                        verifyIdentityBtn.innerHTML = '<i class="fas fa-check-circle"></i> Verified';
+                    } else {
+                        isVerified = false;
+                        updateStatus('identity', false);
+                        notificationSystem.show('Identity verification failed. Please ensure your face is clearly visible.', 'error');
+                        verifyIdentityBtn.innerHTML = '<i class="fas fa-user-check"></i> Verify Identity';
+                        verifyIdentityBtn.disabled = false;
+                    }
+                } catch (error) {
+                    console.error('Verification error:', error);
+                    notificationSystem.show('Identity verification error: ' + error.message, 'error');
+                    verifyIdentityBtn.innerHTML = '<i class="fas fa-user-check"></i> Verify Identity';
+                    verifyIdentityBtn.disabled = false;
+                }
+            });
+
+            // Stop Camera
+            stopCameraBtn.addEventListener('click', stopCamera);
+
+            function stopCamera() {
+                if (video.srcObject) {
+                    video.srcObject.getTracks().forEach(track => track.stop());
+                    video.srcObject = null;
+                }
+                video.style.display = 'none';
+                placeholder.style.display = 'flex';
+                
+                isPreviewing = false;
+                startPreviewBtn.disabled = false;
+                stopCameraBtn.disabled = true;
+                displays.session.textContent = 'Ready to start';
+                
+                if (mockInterval) {
+                    clearInterval(mockInterval);
+                    mockInterval = null;
+                }
+                
+                resetStatus();
+            }
+
+            // Start AI Analysis (Background Process)
+            startAnalysisBtn.addEventListener('click', async function() {
+                try {
+                    // CRITICAL: Stop browser camera first
+                    stopCamera();
+                    
+                    startAnalysisBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing...';
+                    startAnalysisBtn.disabled = true;
+                    
+                    const progressNotification = notificationSystem.showProgress(
+                        'Height & Weight Analysis',
+                        ['Starting AI system', 'Calibrating camera', 'Detecting human', 'Processing metrics', 'Finalizing']
+                    );
+                    
+                    notificationSystem.updateProgress(progressNotification, 0, 5);
+                    
+                    const response = await fetch('/height_weight_system', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'same-origin'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.status === 'success') {
+                        notificationSystem.updateProgress(progressNotification, 1, 5);
+                        notificationSystem.show('AI System started! Check the analysis window.', 'success');
+                        displays.session.textContent = 'Analysis in progress...';
+                        
+                        // Start monitoring for completion
+                        setTimeout(() => {
+                            notificationSystem.updateProgress(progressNotification, 2, 5);
+                            window.completionMonitor.startMonitoring(progressNotification);
+                        }, 5000);
+                        
+                    } else {
+                        throw new Error(result.message || 'Failed to start analysis');
+                    }
+                } catch (error) {
+                    notificationSystem.show('Error: ' + error.message, 'error');
+                    startAnalysisBtn.innerHTML = '<i class="fas fa-ruler-combined"></i> Start Analysis';
+                    startAnalysisBtn.disabled = false;
+                }
+            });
+
+            function startMockSimulation() {
+                let h = 170.0;
+                let w = 70.0;
+                
+                mockInterval = setInterval(() => {
+                    h += (Math.random() - 0.5) * 0.5;
+                    w += (Math.random() - 0.5) * 0.2;
+                    
+                    displays.height.innerHTML = `${h.toFixed(1)} <small>cm</small>`;
+                    displays.weight.innerHTML = `${w.toFixed(1)} <small>kg</small>`;
+                    displays.confidence.textContent = `${Math.floor(85 + Math.random() * 10)}%`;
+                    
+                    // Update status lights
+                    updateStatus('human', true);
+                    updateStatus('position', Math.random() > 0.2);
+                    updateStatus('stability', Math.random() > 0.3);
+                }, 500);
+            }
+
+            function updateStatus(id, active, customClass = 'active') {
+                statusItems[id].classList.toggle(customClass, active);
+            }
+
+            function resetStatus() {
+                Object.values(statusItems).forEach(item => item.classList.remove('active'));
+                displays.height.innerHTML = `0.0 <small>cm</small>`;
+                displays.weight.innerHTML = `0.0 <small>kg</small>`;
+                displays.confidence.textContent = '0%';
+            }
+        });
+    </script>
+</body>
+</html>

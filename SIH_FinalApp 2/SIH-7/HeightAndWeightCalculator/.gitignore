@@ -1,0 +1,8 @@
+data/mm-fit data/mm-fit.zip
+data/*
+mmfit-guide/*
+*/__pycache__/*
+__pycache__/DeepFitClassifier.cpython-36.pyc
+deepfit/
+*.pyc
+**/venv*/

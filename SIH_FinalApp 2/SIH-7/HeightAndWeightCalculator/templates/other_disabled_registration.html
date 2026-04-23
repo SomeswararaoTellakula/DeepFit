@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block title %}Other Disabled Registration{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+    }
+    
+    @keyframes gradientFlow {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    
+    .exercise-container {
+        min-height: 100vh;
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .exercise-wrapper {
+        max-width: 1200px;
+        width: 100%;
+    }
+    
+    .page-title {
+        text-align: center;
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 3rem;
+        background: linear-gradient(135deg, #00aaff, #00ff88, #00aaff);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: slideInUp 0.8s ease-out, gradientFlow 3s ease infinite;
+        text-shadow: 0 5px 20px rgba(0, 170, 255, 0.3);
+    }
+    
+    .exercises-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 3rem;
+        margin-top: 2rem;
+    }
+    
+    .exercise-card {
+        background: linear-gradient(145deg, rgba(0, 170, 255, 0.15), rgba(0, 100, 200, 0.15));
+        backdrop-filter: blur(20px);
+        border: 2px solid rgba(0, 170, 255, 0.4);
+        border-radius: 25px;
+        padding: 3rem 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        animation: slideInUp 0.8s ease-out backwards;
+    }
+    
+    .exercise-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.6s;
+    }
+    
+    .exercise-card:hover::before {
+        left: 100%;
+    }
+    
+    .exercise-card::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(0, 170, 255, 0.1) 0%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.5s;
+    }
+    
+    .exercise-card:hover::after {
+        opacity: 1;
+    }
+    
+    .exercise-card:hover {
+        transform: translateY(-15px) scale(1.05);
+        border-color: rgba(0, 170, 255, 1);
+        box-shadow: 0 25px 70px rgba(0, 170, 255, 0.5),
+                    0 0 50px rgba(0, 170, 255, 0.3);
+        background: linear-gradient(145deg, rgba(0, 170, 255, 0.25), rgba(0, 100, 200, 0.25));
+    }
+    
+    .exercise-icon {
+        font-size: 5rem;
+        margin-bottom: 1.5rem;
+        animation: float 3s ease-in-out infinite;
+        filter: drop-shadow(0 5px 15px rgba(0, 170, 255, 0.5));
+        transition: all 0.4s;
+    }
+    
+    .exercise-card:hover .exercise-icon {
+        transform: scale(1.2) rotate(5deg);
+        filter: drop-shadow(0 10px 25px rgba(0, 170, 255, 0.8));
+    }
+    
+    .exercise-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #fff;
+        text-shadow: 0 2px 10px rgba(0, 170, 255, 0.5);
+        transition: all 0.3s;
+    }
+    
+    .exercise-card:hover .exercise-title {
+        color: #00aaff;
+        text-shadow: 0 4px 20px rgba(0, 170, 255, 0.8);
+        transform: scale(1.05);
+    }
+    
+    .exercise-description {
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 1.1rem;
+        line-height: 1.6;
+        transition: all 0.3s;
+        margin-bottom: 1rem;
+    }
+    
+    .exercise-card:hover .exercise-description {
+        color: rgba(255, 255, 255, 1);
+    }
+    
+    .exercise-badge {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 255, 136, 0.3);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #fff;
+        border: 1px solid rgba(0, 255, 136, 0.5);
+        transition: all 0.3s;
+    }
+    
+    .exercise-card:hover .exercise-badge {
+        background: rgba(0, 255, 136, 0.6);
+        transform: scale(1.1);
+    }
+    
+    .btn-back {
+        display: inline-block;
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, #00aaff, #0066cc);
+        border: none;
+        border-radius: 12px;
+        color: #fff;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 5px 20px rgba(0, 170, 255, 0.3);
+        margin-top: 3rem;
+    }
+    
+    .btn-back:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0, 170, 255, 0.5);
+        color: #fff;
+    }
+    
+    .coming-soon-card {
+        background: linear-gradient(145deg, rgba(255, 170, 0, 0.15), rgba(255, 100, 0, 0.15));
+        backdrop-filter: blur(20px);
+        border: 2px solid rgba(255, 170, 0, 0.4);
+        border-radius: 25px;
+        padding: 3rem 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        animation: slideInUp 0.8s ease-out 0.2s backwards;
+    }
+    
+    .coming-soon-card .exercise-icon {
+        animation: pulse 2s ease-in-out infinite;
+    }
+    
+    .coming-soon-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #ffaa00;
+        margin-bottom: 1rem;
+    }
+    
+    .coming-soon-text {
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+    
+    @media (max-width: 768px) {
+        .page-title {
+            font-size: 2rem;
+        }
+        
+        .exercises-grid {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        
+        .exercise-card {
+            padding: 2.5rem 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="exercise-container">
+    <div class="exercise-wrapper">
+        <h1 class="page-title">Deaf & Other Disabled - Exercises</h1>
+        
+        <div class="exercises-grid">
+            <!-- Situps Exercise Card -->
+            <div class="exercise-card" onclick="window.location.href='/situp/'">
+                <div class="exercise-badge">Available</div>
+                <div class="exercise-icon">💪</div>
+                <h2 class="exercise-title">Sit-ups</h2>
+                <p class="exercise-description">Test your core strength and endurance with our AI-powered sit-up counter and form analyzer</p>
+            </div>
+            
+            <!-- Coming Soon Card -->
+            <div class="coming-soon-card">
+                <div class="exercise-icon">🏃</div>
+                <h2 class="coming-soon-title">More Exercises Coming Soon</h2>
+                <p class="coming-soon-text">Additional exercises and assessments are currently under development</p>
+            </div>
+        </div>
+        
+        <div style="text-align: center;">
+            <a href="{{ url_for('disabled_selection') }}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Back to Selection
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

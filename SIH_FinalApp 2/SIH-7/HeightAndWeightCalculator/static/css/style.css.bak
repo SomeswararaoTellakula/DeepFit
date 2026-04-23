@@ -1,0 +1,17 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap");
+
+/* Base Theme Variables */
+:root {
+    --primary-color: #00aaff;
+    --secondary-color: #0066cc;
+    --background-dark: rgba(13, 17, 23, 0.95);
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --glass-background: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.18);
+    --transition-speed: 0.3s;
+    --box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* Rest of the CSS content... */
+
