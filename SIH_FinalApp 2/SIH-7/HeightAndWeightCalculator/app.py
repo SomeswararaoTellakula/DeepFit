@@ -7,6 +7,11 @@ import numpy as np
 import base64
 from face_verifier import FaceVerifier
 import mediapipe as mp
+try:
+    import mediapipe.python.solutions as solutions
+    mp.solutions = solutions
+except ImportError:
+    pass
 import os
 import bcrypt
 import random
