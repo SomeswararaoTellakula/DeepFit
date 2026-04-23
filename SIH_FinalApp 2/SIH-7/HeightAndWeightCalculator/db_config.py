@@ -1,9 +1,32 @@
 import os
 from pymongo import MongoClient
+import urllib.parse
 
 # Store global references to the connection so we don't spam reconnects
 _mongo_client = None
 _mongo_db = None
+
+def clean_mongo_uri(uri):
+    """Automatically URL-encodes the username and password in a MongoDB URI"""
+    if not uri or (not uri.startswith("mongodb+srv://") and not uri.startswith("mongodb://")):
+        return uri
+        
+    prefix = "mongodb+srv://" if uri.startswith("mongodb+srv://") else "mongodb://"
+    rest = uri[len(prefix):]
+    
+    if "@" in rest:
+        # The last @ separates credentials from host
+        last_at_index = rest.rfind("@")
+        credentials = rest[:last_at_index]
+        host_and_options = rest[last_at_index:]
+        
+        if ":" in credentials:
+            user, password = credentials.split(":", 1)
+            # Safely encode the user and password, handling if they are already encoded
+            encoded_user = urllib.parse.quote_plus(urllib.parse.unquote_plus(user))
+            encoded_password = urllib.parse.quote_plus(urllib.parse.unquote_plus(password))
+            return f"{prefix}{encoded_user}:{encoded_password}{host_and_options}"
+    return uri
 
 def connect_mongodb():
     global _mongo_client, _mongo_db
@@ -18,7 +41,8 @@ def connect_mongodb():
             _mongo_client = None
             _mongo_db = None
 
-    uri = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/')
+    raw_uri = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/')
+    uri = clean_mongo_uri(raw_uri)
     
     try:
         print(f"🔗 Attempting to connect to MongoDB at: {uri.split('@')[-1] if '@' in uri else uri}")
