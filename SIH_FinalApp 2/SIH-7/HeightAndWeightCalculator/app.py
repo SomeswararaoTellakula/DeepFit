@@ -783,13 +783,14 @@ def analysis():
 
 @app.route('/static/<path:path>')
 def serve_static(path):
-    return send_from_directory('static', path)
+    import os
+    return send_from_directory(os.path.join(app.root_path, 'static'), path)
 
 @app.route('/static/workout_summary.json')
 def serve_workout_summary():
     """Serve workout summary JSON file"""
     try:
-        return send_from_directory('.', 'workout_summary.json')
+        return send_from_directory(app.root_path, 'workout_summary.json')
     except FileNotFoundError:
         return jsonify({'error': 'No workout data found'}), 404
 

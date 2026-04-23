@@ -7,6 +7,8 @@ __pycache__/
 *.mp4
 *.jpg
 *.png
+!static/
+!static/**
 uploads/
 validation_results/
 *.pt
