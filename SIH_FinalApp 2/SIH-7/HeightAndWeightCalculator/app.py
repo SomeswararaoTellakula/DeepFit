@@ -277,6 +277,10 @@ def index():
         return render_template('index.html', user=user)
     return render_template('index.html')
 
+@app.route('/background.png')
+def serve_background():
+    return send_from_directory('.', 'background.png')
+
 @app.route('/height')
 def height():
     if not session or 'user_id' not in session:
