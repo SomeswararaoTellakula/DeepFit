@@ -2233,6 +2233,48 @@ def save_blind_assessment_detailed():
         log_error(f"Save detailed blind assessment error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/verify_blind_identity', methods=['POST'])
+def verify_blind_identity():
+    """Verify if current person matches the registered blind user photo"""
+    if 'blind_user_id' not in session and 'blind_user_temp' not in session:
+        return jsonify({'success': False, 'error': 'No user session'}), 401
+    
+    try:
+        data = request.get_json()
+        current_frame_base64 = data.get('frame_data')
+        
+        if not current_frame_base64:
+            return jsonify({'success': False, 'error': 'No image data provided'}), 400
+        
+        # Get registration photo from database
+        reference_photo = None
+        if 'blind_user_id' in session and mongodb_connected:
+            try:
+                user_doc = db.blind_registrations.find_one({'_id': ObjectId(session['blind_user_id'])})
+                if user_doc:
+                    reference_photo = user_doc.get('photo')
+            except Exception as e:
+                print(f"Error fetching user photo: {e}")
+        
+        if not reference_photo:
+            return jsonify({'success': False, 'error': 'Registration photo not found'}), 404
+        
+        # Verify identity
+        face_verifier = FaceVerifier()
+        is_match, confidence = face_verifier.verify_from_base64(reference_photo, current_frame_base64)
+        
+        return jsonify({
+            'success': True,
+            'is_match': is_match,
+            'confidence': float(confidence),
+            'message': 'Identity verified' if is_match else 'Identity mismatch detected'
+        })
+        
+    except Exception as e:
+        print(f"Blind identity verification error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @app.route('/api/save_blind_assessment_complete', methods=['POST'])
 def save_blind_assessment_complete():
     try:

@@ -14,3 +14,7 @@ validation_results/
 *.pt
 *.pkl
 models/
+
+# Xcode user-specific files
+*.xcuserstate
+xcuserdata/

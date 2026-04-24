@@ -95,15 +95,13 @@ class FaceVerifier:
         """
         ref_img = self.decode_base64_image(reference_photo_base64)
         if ref_img is None:
-            # Force success for demo purposes
-            return True, 0.95
+            return False, 0.0
             
         ref_sig = self.get_face_signature(ref_img)
         curr_sig = self.get_face_signature(current_frame)
         
         if ref_sig is None or curr_sig is None:
-            # Maximum leniency: return True even if no face detected
-            return True, 0.95
+            return False, 0.0
             
         # Calculate Euclidean distance between signatures
         dist = np.linalg.norm(ref_sig - curr_sig)
@@ -112,20 +110,14 @@ class FaceVerifier:
         # 0.0 distance = 1.0 confidence
         confidence = max(0, 1.0 - (dist / (self.threshold * 2)))
         
-        # For web-based demo purposes and varying camera angles, 
-        # as long as MediaPipe successfully detects a face in both 
-        # the reference and current frame, we authorize the user.
-        is_match = True
+        # Proper matching logic: match only if distance is below threshold
+        is_match = dist < self.threshold
         
-        # Boost confidence artificially so the UI shows a strong match
-        confidence = max(0.85, confidence)
-        
-        return is_match, confidence
+        return is_match, float(confidence)
 
     def verify_from_base64(self, reference_photo_base64: str, current_photo_base64: str) -> Tuple[bool, float]:
         """Helper to verify two base64 images"""
         curr_img = self.decode_base64_image(current_photo_base64)
         if curr_img is None:
-            # Force success for demo purposes
-            return True, 0.95
+            return False, 0.0
         return self.verify(reference_photo_base64, curr_img)

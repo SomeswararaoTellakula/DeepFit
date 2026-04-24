@@ -222,6 +222,11 @@
         
         <canvas id="cameraCanvas" class="camera-feed"></canvas>
         
+        <div id="camera-error" class="test-status" style="display: none; background: rgba(255, 0, 0, 0.3); color: #ff6b6b; border: 2px solid #ff6b6b;">
+            <i class="fas fa-exclamation-triangle"></i> <span id="camera-error-text">Camera error</span>
+            <br><button id="retry-camera-btn" class="btn-capture" style="margin-top: 1rem; display: inline-block; width: auto; padding: 0.5rem 1.5rem;">Retry Camera</button>
+        </div>
+        
         <div class="test-status" id="testStatus">Initializing...</div>
         
         <div class="timer-display" id="timerDisplay" style="display: none;">10</div>
@@ -351,30 +356,140 @@
     const videoElement = document.getElementById('videoElement');
     const canvasElement = document.getElementById('cameraCanvas');
     const canvasCtx = canvasElement.getContext('2d');
+    let identityVerified = false;
+    let identityCheckInterval = null;
+    let identityMismatchCount = 0;
+    const MAX_MISMATCH_COUNT = 3;
 
     async function initializeFaceDetection() {
-        faceDetection = new FaceDetection({
-            locateFile: (file) => {
-                return `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4/${file}`;
+        const errorDiv = document.getElementById('camera-error');
+        const errorText = document.getElementById('camera-error-text');
+        const canvas = document.getElementById('cameraCanvas');
+        
+        // Hide previous error
+        if (errorDiv) errorDiv.style.display = 'none';
+        
+        try {
+            // Check if MediaPipe libraries loaded
+            if (typeof FaceDetection === 'undefined') {
+                throw new Error('Face detection library failed to load. Please check your internet connection and refresh the page.');
             }
-        });
+            if (typeof Camera === 'undefined') {
+                throw new Error('Camera utility library failed to load. Please check your internet connection and refresh the page.');
+            }
+            
+            // Request camera permission explicitly first
+            const testStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            testStream.getTracks().forEach(track => track.stop());
+            
+            faceDetection = new FaceDetection({
+                locateFile: (file) => {
+                    return `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4/${file}`;
+                }
+            });
+            
+            faceDetection.setOptions({
+                model: 'short',
+                minDetectionConfidence: 0.5
+            });
+            
+            faceDetection.onResults(onFaceDetectionResults);
+            
+            camera = new Camera(videoElement, {
+                onFrame: async () => {
+                    await faceDetection.send({image: videoElement});
+                },
+                width: 640,
+                height: 480
+            });
+            
+            await camera.start();
+            
+            // Set canvas to actual video dimensions for correct drawing
+            if (videoElement.videoWidth && videoElement.videoHeight) {
+                canvas.width = videoElement.videoWidth;
+                canvas.height = videoElement.videoHeight;
+            } else {
+                canvas.width = 640;
+                canvas.height = 480;
+            }
+            
+        } catch (err) {
+            console.error('Camera initialization error:', err);
+            let message = 'Unable to start camera.';
+            
+            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                message = 'Camera permission denied. Please allow camera access in your browser settings and click Retry Camera.';
+            } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                message = 'No camera found. Please connect a camera and click Retry Camera.';
+            } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                message = 'Camera is already in use by another application. Please close other apps using the camera and click Retry Camera.';
+            } else if (err.message && err.message.includes('library failed to load')) {
+                message = err.message;
+            } else if (err.message) {
+                message = err.message;
+            }
+            
+            if (errorText) errorText.textContent = message;
+            if (errorDiv) errorDiv.style.display = 'block';
+        }
+    }
+
+    async function verifyIdentityAgainstRegistration() {
+        if (!videoElement.videoWidth) return;
         
-        faceDetection.setOptions({
-            model: 'short',
-            minDetectionConfidence: 0.5
-        });
+        const canvas = document.createElement('canvas');
+        canvas.width = videoElement.videoWidth;
+        canvas.height = videoElement.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(videoElement, 0, 0);
+        const frameData = canvas.toDataURL('image/jpeg');
         
-        faceDetection.onResults(onFaceDetectionResults);
-        
-        camera = new Camera(videoElement, {
-            onFrame: async () => {
-                await faceDetection.send({image: videoElement});
-            },
-            width: 640,
-            height: 480
-        });
-        
-        camera.start();
+        try {
+            const response = await fetch('/api/verify_blind_identity', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ frame_data: frameData })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                if (result.is_match) {
+                    identityVerified = true;
+                    identityMismatchCount = 0;
+                    // Update status if this is the first verification
+                    if (document.getElementById('testStatus').textContent === 'Initializing...') {
+                        document.getElementById('testStatus').textContent = 'Identity verified. Starting assessment...';
+                    }
+                } else {
+                    identityMismatchCount++;
+                    console.log(`Identity mismatch detected. Count: ${identityMismatchCount}/${MAX_MISMATCH_COUNT}`);
+                    
+                    if (identityMismatchCount >= MAX_MISMATCH_COUNT) {
+                        testPaused = true;
+                        const container = document.getElementById('assessmentContainer');
+                        const warning = document.getElementById('faceWarning');
+                        container.classList.add('face-not-visible');
+                        warning.innerHTML = '<i class="fas fa-exclamation-triangle"></i><br>IDENTITY MISMATCH<br><small>Registered user not detected</small>';
+                        warning.classList.add('show');
+                        
+                        if (timerInterval) clearInterval(timerInterval);
+                        pauseAudio();
+                        
+                        testResults.faceDetectionLogs.push({
+                            timestamp: new Date().toISOString(),
+                            status: 'identity_mismatch',
+                            currentTest: currentTest,
+                            currentQuestion: currentQuestion,
+                            timeRemaining: timeRemaining
+                        });
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Identity verification request error:', e);
+        }
     }
 
     function onFaceDetectionResults(results) {
@@ -439,6 +554,10 @@
             testPaused = false;
             container.classList.remove('face-not-visible');
             warning.classList.remove('show');
+            warning.innerHTML = '<i class="fas fa-exclamation-triangle"></i><br>FACE NOT VISIBLE<br><small>Please position your face in the camera</small>';
+            
+            // Reset identity mismatch count when face is restored
+            identityMismatchCount = 0;
             
             testResults.faceDetectionLogs.push({
                 timestamp: new Date().toISOString(),
@@ -1139,7 +1258,33 @@
         canvasElement.height = 480;
         
         await initializeFaceDetection();
-        setTimeout(() => startIntro(), 1000);
+        
+        // Bind retry button
+        const retryBtn = document.getElementById('retry-camera-btn');
+        if (retryBtn) {
+            retryBtn.addEventListener('click', async () => {
+                await initializeFaceDetection();
+            });
+        }
+        
+        // Only start intro if camera is working
+        const errorDiv = document.getElementById('camera-error');
+        if (!errorDiv || errorDiv.style.display === 'none') {
+            // Start identity verification polling
+            document.getElementById('testStatus').textContent = 'Verifying identity against registration photo...';
+            identityCheckInterval = setInterval(verifyIdentityAgainstRegistration, 2000);
+            
+            // Wait for identity verification before starting intro
+            const waitForIdentity = setInterval(() => {
+                if (identityVerified) {
+                    clearInterval(waitForIdentity);
+                    clearInterval(identityCheckInterval);
+                    // Continue with periodic identity checks during test
+                    identityCheckInterval = setInterval(verifyIdentityAgainstRegistration, 5000);
+                    startIntro();
+                }
+            }, 1000);
+        }
     });
 </script>
 {% endblock %}
