@@ -11,7 +11,7 @@ class FaceVerifier:
     Compares face signatures based on geometric proportions.
     """
     
-    def __init__(self, threshold: float = 0.15):
+    def __init__(self, threshold: float = 0.45):
         self.mp_face_mesh = mp.solutions.face_mesh.FaceMesh(
             static_image_mode=True,
             max_num_faces=1,
