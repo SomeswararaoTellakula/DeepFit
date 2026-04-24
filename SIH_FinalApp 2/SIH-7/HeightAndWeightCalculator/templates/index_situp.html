@@ -81,12 +81,17 @@
         <div class="main-content">
             <div class="video-section">
                 <div class="video-container">
+                    <!-- Browser-based live preview -->
+                    <video id="preview-video" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover; display: none;"></video>
+                    
+                    <!-- Backend-processed video feed -->
                     <img id="video-feed" src="" alt="Camera feed will appear here" style="display: none;" 
                          onerror="this.style.display='none'; document.getElementById('placeholder').style.display='flex';">
+                    
                     <div id="placeholder" class="video-placeholder">
                         <div class="placeholder-content">
                             <h3>📹 Camera Ready</h3>
-                            <p>Click "Start Camera" to begin your situps session</p>
+                            <p>Verify identity then click "Start Camera" or "Camera Preview"</p>
                         </div>
                     </div>
                 </div>
@@ -96,6 +101,9 @@
                         <i class="fas fa-user-check"></i> Verify Identity
                     </button>
                     <button id="start-btn" class="btn btn-primary" disabled title="Verify identity first">Start Camera</button>
+                    <button id="preview-btn" class="btn btn-secondary">
+                        <i class="fas fa-video"></i> Camera Preview
+                    </button>
                     <button id="stop-btn" class="btn btn-secondary" disabled>Stop Camera</button>
                     <button id="reset-btn" class="btn btn-warning">Reset Counter</button>
                     <button id="submit-btn" class="btn btn-success">Submit</button>
