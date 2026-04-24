@@ -266,6 +266,18 @@ header p {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
+.video-container img,
+.video-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+}
+
+.video-container video {
+    transform: scaleX(-1); /* Mirror effect for natural preview */
+}
+
 .video-placeholder {
     position: absolute;
     top: 0;
