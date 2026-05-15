@@ -1,0 +1,120 @@
+Defaulting to user installation because normal site-packages is not writeable
+Requirement already satisfied: pandas>=1.3.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from -r requirements.txt (line 1)) (2.3.3)
+Requirement already satisfied: numpy<2.0.0,>=1.21.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from -r requirements.txt (line 2)) (1.26.4)
+Requirement already satisfied: pymongo>=4.0.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from -r requirements.txt (line 3)) (4.16.0)
+Requirement already satisfied: flask>=2.0.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from -r requirements.txt (line 4)) (3.1.3)
+Requirement already satisfied: torch==2.1.2 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from -r requirements.txt (line 5)) (2.1.2)
+Requirement already satisfied: torchvision==0.16.2 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from -r requirements.txt (line 6)) (0.16.2)
+Requirement already satisfied: transformers==4.35.2 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from -r requirements.txt (line 7)) (4.35.2)
+Requirement already satisfied: opencv-python>=4.8.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from -r requirements.txt (line 8)) (4.11.0.86)
+Requirement already satisfied: mediapipe>=0.10.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from -r requirements.txt (line 9)) (0.10.8)
+Requirement already satisfied: scikit-learn>=1.0.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from -r requirements.txt (line 10)) (1.6.1)
+Requirement already satisfied: matplotlib>=3.5.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from -r requirements.txt (line 11)) (3.8.2)
+Requirement already satisfied: seaborn>=0.11.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from -r requirements.txt (line 12)) (0.13.2)
+Requirement already satisfied: scipy>=1.7.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from -r requirements.txt (line 13)) (1.13.1)
+Requirement already satisfied: pyyaml>=6.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from -r requirements.txt (line 14)) (6.0.2)
+Requirement already satisfied: joblib>=1.1.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from -r requirements.txt (line 15)) (1.5.3)
+Requirement already satisfied: sympy in /Users/apple/Library/Python/3.9/lib/python/site-packages (from torch==2.1.2->-r requirements.txt (line 5)) (1.14.0)
+Requirement already satisfied: typing-extensions in /Users/apple/Library/Python/3.9/lib/python/site-packages (from torch==2.1.2->-r requirements.txt (line 5)) (4.15.0)
+Requirement already satisfied: filelock in /Users/apple/Library/Python/3.9/lib/python/site-packages (from torch==2.1.2->-r requirements.txt (line 5)) (3.19.1)
+Requirement already satisfied: networkx in /Users/apple/Library/Python/3.9/lib/python/site-packages (from torch==2.1.2->-r requirements.txt (line 5)) (3.2.1)
+Requirement already satisfied: fsspec in /Users/apple/Library/Python/3.9/lib/python/site-packages (from torch==2.1.2->-r requirements.txt (line 5)) (2025.10.0)
+Requirement already satisfied: jinja2 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from torch==2.1.2->-r requirements.txt (line 5)) (3.1.6)
+Requirement already satisfied: requests in /Users/apple/Library/Python/3.9/lib/python/site-packages (from torchvision==0.16.2->-r requirements.txt (line 6)) (2.32.5)
+Requirement already satisfied: pillow!=8.3.*,>=5.3.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from torchvision==0.16.2->-r requirements.txt (line 6)) (10.4.0)
+Requirement already satisfied: tqdm>=4.27 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from transformers==4.35.2->-r requirements.txt (line 7)) (4.67.3)
+Requirement already satisfied: huggingface-hub<1.0,>=0.16.4 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from transformers==4.35.2->-r requirements.txt (line 7)) (0.36.2)
+Requirement already satisfied: regex!=2019.12.17 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from transformers==4.35.2->-r requirements.txt (line 7)) (2026.1.15)
+Requirement already satisfied: safetensors>=0.3.1 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from transformers==4.35.2->-r requirements.txt (line 7)) (0.7.0)
+Requirement already satisfied: tokenizers<0.19,>=0.14 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from transformers==4.35.2->-r requirements.txt (line 7)) (0.15.2)
+Requirement already satisfied: packaging>=20.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from transformers==4.35.2->-r requirements.txt (line 7)) (25.0)
+Requirement already satisfied: python-dateutil>=2.8.2 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from pandas>=1.3.0->-r requirements.txt (line 1)) (2.9.0.post0)
+Requirement already satisfied: pytz>=2020.1 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from pandas>=1.3.0->-r requirements.txt (line 1)) (2025.2)
+Requirement already satisfied: tzdata>=2022.7 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from pandas>=1.3.0->-r requirements.txt (line 1)) (2025.3)
+Requirement already satisfied: dnspython<3.0.0,>=2.6.1 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from pymongo>=4.0.0->-r requirements.txt (line 3)) (2.7.0)
+Requirement already satisfied: importlib-metadata>=3.6.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from flask>=2.0.0->-r requirements.txt (line 4)) (8.7.1)
+Requirement already satisfied: markupsafe>=2.1.1 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from flask>=2.0.0->-r requirements.txt (line 4)) (2.1.5)
+Requirement already satisfied: itsdangerous>=2.2.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from flask>=2.0.0->-r requirements.txt (line 4)) (2.2.0)
+Requirement already satisfied: werkzeug>=3.1.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from flask>=2.0.0->-r requirements.txt (line 4)) (3.1.8)
+Requirement already satisfied: click>=8.1.3 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from flask>=2.0.0->-r requirements.txt (line 4)) (8.1.8)
+Requirement already satisfied: blinker>=1.9.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from flask>=2.0.0->-r requirements.txt (line 4)) (1.9.0)
+Requirement already satisfied: attrs>=19.1.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from mediapipe>=0.10.0->-r requirements.txt (line 9)) (25.4.0)
+Requirement already satisfied: opencv-contrib-python in /Users/apple/Library/Python/3.9/lib/python/site-packages (from mediapipe>=0.10.0->-r requirements.txt (line 9)) (4.8.1.78)
+Requirement already satisfied: protobuf<4,>=3.11 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from mediapipe>=0.10.0->-r requirements.txt (line 9)) (3.20.3)
+Requirement already satisfied: sounddevice>=0.4.4 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from mediapipe>=0.10.0->-r requirements.txt (line 9)) (0.5.5)
+Requirement already satisfied: flatbuffers>=2.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from mediapipe>=0.10.0->-r requirements.txt (line 9)) (25.12.19)
+Requirement already satisfied: absl-py in /Users/apple/Library/Python/3.9/lib/python/site-packages (from mediapipe>=0.10.0->-r requirements.txt (line 9)) (2.3.1)
+Requirement already satisfied: threadpoolctl>=3.1.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from scikit-learn>=1.0.0->-r requirements.txt (line 10)) (3.6.0)
+Requirement already satisfied: cycler>=0.10 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from matplotlib>=3.5.0->-r requirements.txt (line 11)) (0.12.1)
+Requirement already satisfied: kiwisolver>=1.3.1 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from matplotlib>=3.5.0->-r requirements.txt (line 11)) (1.4.7)
+Requirement already satisfied: fonttools>=4.22.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from matplotlib>=3.5.0->-r requirements.txt (line 11)) (4.60.2)
+Requirement already satisfied: pyparsing>=2.3.1 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from matplotlib>=3.5.0->-r requirements.txt (line 11)) (3.3.2)
+Requirement already satisfied: importlib-resources>=3.2.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from matplotlib>=3.5.0->-r requirements.txt (line 11)) (6.5.2)
+Requirement already satisfied: contourpy>=1.0.1 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from matplotlib>=3.5.0->-r requirements.txt (line 11)) (1.3.0)
+Requirement already satisfied: hf-xet<2.0.0,>=1.1.3 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from huggingface-hub<1.0,>=0.16.4->transformers==4.35.2->-r requirements.txt (line 7)) (1.3.2)
+Requirement already satisfied: zipp>=3.20 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from importlib-metadata>=3.6.0->flask>=2.0.0->-r requirements.txt (line 4)) (3.23.0)
+Requirement already satisfied: six>=1.5 in /Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/site-packages (from python-dateutil>=2.8.2->pandas>=1.3.0->-r requirements.txt (line 1)) (1.15.0)
+Requirement already satisfied: cffi in /Users/apple/Library/Python/3.9/lib/python/site-packages (from sounddevice>=0.4.4->mediapipe>=0.10.0->-r requirements.txt (line 9)) (2.0.0)
+Requirement already satisfied: pycparser in /Users/apple/Library/Python/3.9/lib/python/site-packages (from cffi->sounddevice>=0.4.4->mediapipe>=0.10.0->-r requirements.txt (line 9)) (2.23)
+Requirement already satisfied: charset_normalizer<4,>=2 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from requests->torchvision==0.16.2->-r requirements.txt (line 6)) (3.4.4)
+Requirement already satisfied: certifi>=2017.4.17 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from requests->torchvision==0.16.2->-r requirements.txt (line 6)) (2026.1.4)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from requests->torchvision==0.16.2->-r requirements.txt (line 6)) (2.6.3)
+Requirement already satisfied: idna<4,>=2.5 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from requests->torchvision==0.16.2->-r requirements.txt (line 6)) (3.11)
+Requirement already satisfied: mpmath<1.4,>=1.1.0 in /Users/apple/Library/Python/3.9/lib/python/site-packages (from sympy->torch==2.1.2->-r requirements.txt (line 5)) (1.3.0)
+WARNING: You are using pip version 21.2.4; however, version 26.0.1 is available.
+You should consider upgrading via the '/Applications/Xcode.app/Contents/Developer/usr/bin/python3 -m pip install --upgrade pip' command.
+[2026-05-09 21:14:55,578] INFO in error_logger: Starting DeepFit application
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1778341498.695040       1 gl_context.cc:344] GL version: 2.1 (2.1 ATI-7.1.6), renderer: AMD Radeon Pro 5500M OpenGL Engine
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+[2026-05-09 21:14:58,713] INFO in error_logger: FaceVerifier initialized with threshold=0.70
+I0000 00:00:1778341500.006706       1 gl_context.cc:344] GL version: 2.1 (2.1 ATI-7.1.6), renderer: AMD Radeon Pro 5500M OpenGL Engine
+I0000 00:00:1778341517.663465       1 gl_context.cc:344] GL version: 2.1 (2.1 ATI-7.1.6), renderer: AMD Radeon Pro 5500M OpenGL Engine
+I0000 00:00:1778341519.100094       1 gl_context.cc:344] GL version: 2.1 (2.1 ATI-7.1.6), renderer: AMD Radeon Pro 5500M OpenGL Engine
+I0000 00:00:1778341519.427795       1 gl_context.cc:344] GL version: 2.1 (2.1 ATI-7.1.6), renderer: AMD Radeon Pro 5500M OpenGL Engine
+/Users/apple/Library/Python/3.9/lib/python/site-packages/google/api_core/_python_version_support.py:246: FutureWarning: You are using a non-supported Python version (3.9.6). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.10, and then update google.api_core.
+  warnings.warn(message, FutureWarning)
+/Users/apple/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/Users/apple/Library/Python/3.9/lib/python/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/apple/Library/Python/3.9/lib/python/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+/Users/apple/Documents/Deepfit_latest_blind/SIH_FinalApp 2/SIH-7/HeightAndWeightCalculator/gemini_chatbot.py:1: FutureWarning: 
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving 
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+9 21:14:54,282] INFO in _internal: 127.0.0.1 - - [09/May/2026 21:14:54] "[36mGET /static/css/exercise-header.css HTTP/1.1[0m" 304 -
+[2026-05-09 21:14:54,309] INFO in _internal: 127.0.0.1 - - [09/May/2026 21:14:54] "[36mGET /static/js/notification-system.js HTTP/1.1[0m" 304 -
+[2026-05-09 21:14:55,578] INFO in error_logger: Starting DeepFit application
+[2026-05-09 21:14:58,713] INFO in error_logger: FaceVerifier initialized with threshold=0.70
+[2026-05-09 21:15:01,280] INFO in error_logger: POST http://localhost:5001/api/verify_user_identity
+[2026-05-09 21:15:01,651] INFO in face_verifier: Similarity: euclidean_dist=0.3403, euclidean_sim=0.8639, cosine_sim=0.9936, combined=0.9569
+[2026-05-09 21:15:01,652] INFO in face_verifier: Verification: is_match=True, confidence=0.9569, threshold=0.45
+[2026-05-09 21:15:01,665] INFO in error_logger: User identity verification: is_match=True, confidence=0.9569, debug={'reference_decoded': True, 'reference_face_found': True, 'current_face_found': True, 'distance': 0.340293824672699, 'similarity': 0.956913104057312, 'threshold': 0.45}
+[2026-05-09 21:15:01,683] INFO in _internal: 127.0.0.1 - - [09/May/2026 21:15:01] "POST /api/verify_user_identity HTTP/1.1" 200 -
+[2026-05-09 21:15:11,758] INFO in error_logger: GET http://localhost:5001/
+[2026-05-09 21:15:11,795] INFO in _internal: 127.0.0.1 - - [09/May/2026 21:15:11] "GET / HTTP/1.1" 200 -
+[2026-05-09 21:15:12,616] INFO in error_logger: GET http://localhost:5001/static/css/style.css
+[2026-05-09 21:15:12,647] INFO in error_logger: GET http://localhost:5001/static/images/logo_sai.jpg
+[2026-05-09 21:15:12,666] INFO in _internal: 127.0.0.1 - - [09/May/2026 21:15:12] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+[2026-05-09 21:15:12,686] INFO in _internal: 127.0.0.1 - - [09/May/2026 21:15:12] "[36mGET /static/images/logo_sai.jpg HTTP/1.1[0m" 304 -
+[2026-05-09 21:15:12,689] INFO in error_logger: GET http://localhost:5001/static/images/image.png
+[2026-05-09 21:15:12,706] INFO in _internal: 127.0.0.1 - - [09/May/2026 21:15:12] "[36mGET /static/images/image.png HTTP/1.1[0m" 304 -
+[2026-05-09 21:15:13,122] INFO in error_logger: GET http://localhost:5001/static/images/image2.png
+[2026-05-09 21:15:13,124] INFO in error_logger: GET http://localhost:5001/static/images/image1.png
+[2026-05-09 21:15:13,158] INFO in error_logger: GET http://localhost:5001/static/js/main.js
+[2026-05-09 21:15:13,214] INFO in _internal: 127.0.0.1 - - [09/May/2026 21:15:13] "[36mGET /static/images/image2.png HTTP/1.1[0m" 304 -
+[2026-05-09 21:15:13,217] INFO in error_logger: GET http://localhost:5001/background.png
+[2026-05-09 21:15:13,234] INFO in error_logger: GET http://localhost:5001/static/images/hero-bg.png
+[2026-05-09 21:15:13,269] INFO in _internal: 127.0.0.1 - - [09/May/2026 21:15:13] "[36mGET /static/images/image1.png HTTP/1.1[0m" 304 -
+[2026-05-09 21:15:13,271] INFO in _internal: 127.0.0.1 - - [09/May/2026 21:15:13] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+[2026-05-09 21:15:13,289] INFO in _internal: 127.0.0.1 - - [09/May/2026 21:15:13] "[36mGET /background.png HTTP/1.1[0m" 304 -
+[2026-05-09 21:15:13,308] INFO in _internal: 127.0.0.1 - - [09/May/2026 21:15:13] "[36mGET /static/images/hero-bg.png HTTP/1.1[0m" 304 -
+[2026-05-13 17:10:56,927] INFO in error_logger: Starting DeepFit application
+[2026-05-13 17:10:57,104] INFO in error_logger: FaceVerifier initialized with threshold=0.70

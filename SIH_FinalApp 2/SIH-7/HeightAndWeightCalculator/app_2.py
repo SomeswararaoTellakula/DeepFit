@@ -16,7 +16,6 @@ import warnings
 import winsound  # For buzzer sound on Windows
 from enum import Enum
 import math
-
 # Set seeds for reproducibility
 torch.manual_seed(42)
 np.random.seed(42)

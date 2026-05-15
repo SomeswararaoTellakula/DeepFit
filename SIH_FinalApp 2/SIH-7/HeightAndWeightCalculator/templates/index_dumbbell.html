@@ -210,12 +210,15 @@
                 this.isRunning = false;
                 this.statsInterval = null;
                 this.timerInterval = null;
+                this.identityCheckInterval = null;
                 this.timeRemaining = 180; // 3 minutes in seconds
                 this.totalTime = 180;
                 this.startTime = null;
                 this.endTime = null;
                 this.timerCompleted = false;
                 this.isVerified = false;
+                this.identityMismatchCount = 0;
+                this.MAX_IDENTITY_MISMATCHES = 2;
                 this.initializeElements();
                 this.bindEvents();
                 this.initializeVerificationCamera();
@@ -353,6 +356,57 @@
                 this.sessionStatus.textContent = 'Preview stopped';
             }
 
+            async startIdentityCheck() {
+                if (!this.isVerified || !this.isRunning) return;
+                
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    const tempVideo = document.createElement('video');
+                    tempVideo.srcObject = stream;
+                    tempVideo.autoplay = true;
+                    tempVideo.playsInline = true;
+                    
+                    await new Promise(resolve => {
+                        tempVideo.onloadedmetadata = () => resolve();
+                    });
+                    
+                    const canvas = document.createElement('canvas');
+                    canvas.width = tempVideo.videoWidth || 640;
+                    canvas.height = tempVideo.videoHeight || 480;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(tempVideo, 0, 0);
+                    const frameData = canvas.toDataURL('image/jpeg');
+                    
+                    stream.getTracks().forEach(t => t.stop());
+                    
+                    const response = await fetch('/api/verify_user_identity', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ frame_data: frameData })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        if (result.is_match) {
+                            this.identityMismatchCount = 0;
+                            console.log('Identity verified during exercise');
+                        } else {
+                            this.identityMismatchCount++;
+                            console.warn(`Identity mismatch detected (${this.identityMismatchCount}/${this.MAX_IDENTITY_MISMATCHES})`);
+                            
+                            if (this.identityMismatchCount >= this.MAX_IDENTITY_MISMATCHES) {
+                                await this.stopCamera();
+                                alert('Identity verification failed! Exercise stopped. Only the registered user can perform the exercise.');
+                                this.identityMismatchCount = 0;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Continuous identity check error:', error);
+                }
+            }
+
             async startCamera() {
                 try {
                     // Stop browser preview if active
@@ -371,9 +425,18 @@
                         
                         this.startBtn.disabled = true;
                         this.stopBtn.disabled = false;
+                        this.identityMismatchCount = 0;
                         
                         this.startTimer();
                         this.startStatsUpdate();
+                        
+                        // Start continuous identity checks every 15 seconds
+                        this.identityCheckInterval = setInterval(() => {
+                            if (this.isRunning) {
+                                this.startIdentityCheck();
+                            }
+                        }, 15000);
+                        
                         this.showFeedback('Camera started! Face the camera directly.', 'success');
                     } else {
                         this.showFeedback('Failed to start camera: ' + data.message, 'error');
@@ -397,6 +460,13 @@
                     
                     this.stopTimer();
                     this.stopStatsUpdate();
+                    
+                    // Stop continuous identity checks
+                    if (this.identityCheckInterval) {
+                        clearInterval(this.identityCheckInterval);
+                        this.identityCheckInterval = null;
+                    }
+                    
                     this.showFeedback('Camera stopped.', 'info');
                 } catch (error) {
                     this.isRunning = false;
@@ -405,6 +475,12 @@
                     this.startBtn.disabled = false;
                     this.stopBtn.disabled = true;
                     this.stopStatsUpdate();
+                    
+                    // Stop continuous identity checks
+                    if (this.identityCheckInterval) {
+                        clearInterval(this.identityCheckInterval);
+                        this.identityCheckInterval = null;
+                    }
                 }
             }
 
@@ -453,6 +529,13 @@
                         try {
                             const response = await fetch('/dumbbell/get_stats');
                             const stats = await response.json();
+                            
+                            if (stats.identity_error) {
+                                await this.stopCamera();
+                                alert('Identity mismatch detected by server! Exercise stopped.');
+                                return;
+                            }
+                            
                             this.updateStats(stats);
                         } catch (error) {
                             console.error('Error fetching stats:', error);

@@ -25,7 +25,7 @@ def install_requirements():
 def open_browser():
     """Open browser after a delay"""
     time.sleep(2)  # Wait for Flask to start
-    webbrowser.open('http://localhost:5000')
+    webbrowser.open('http://localhost:5001')
 
 def main():
     print("🏋️ Starting DeepFit Situps Counter...")
@@ -44,7 +44,7 @@ def main():
     
     print("\n🚀 Starting web server...")
     print("📱 The application will open in your browser automatically")
-    print("🔗 Manual URL: http://localhost:5000")
+    print("🔗 Manual URL: http://localhost:5001")
     print("\n📋 Instructions:")
     print("1. Click 'Start Camera' to begin")
     print("2. Position yourself for situps")
@@ -58,7 +58,7 @@ def main():
     # Start Flask app
     try:
         from app import app
-        app.run(debug=False, host='0.0.0.0', port=5000)
+        app.run(debug=False, host='0.0.0.0', port=5001)
     except KeyboardInterrupt:
         print("\n👋 DeepFit stopped. Thanks for working out!")
     except Exception as e:

@@ -1,50 +1,52 @@
-## To-Do List for Height and Weight Estimation Project
+# Face Verification Fix - TODO
 
-### Phase 1: Analyze uploaded files and understand limitations
-- [x] Read `pasted_content.txt` (limitations)
-- [x] Read `pasted_content_2.txt` (code)
-- [x] Summarize critical issues and limitations from `pasted_content.txt`
-- [x] Identify corresponding code sections in `pasted_content_2.txt` for each limitation
+## Issue: Face verification always returns False / "not verified"
 
-### Phase 2: Research height detection techniques and best practices
-- [ ] Research robust camera calibration methods (e.g., chessboard calibration)
-- [ ] Investigate advanced monocular depth estimation techniques or alternatives (e. ] Research alternative reference objects or methods for scale estimation
-- [ ] Explore state-of-the-art pose estimation and 3D reconstruction algorithms
-- [ ] Research anthropometric models and weight estimation formulas for improved accuracy
-- [ ] Investigate best practices for user interface design for camera-based applications
+### Tasks:
+- [x] 1. Fix `face_verifier.py` - improve matching algorithm, add preprocessing, debug logging
+- [x] 2. Fix `app.py` - add global FaceVerifier instance, debug endpoints, better error handling
+- [x] 3. Fix `templates/blind_assessment.html` - add debug logging, retry logic, show confidence
+- [x] 4. Create `debug_verify.py` - standalone test script for verification
+- [ ] 5. Run syntax check and test complete flow
 
-### Phase 3: Design improved height detection algorithm
-- [ ] Propose a detailed camera calibration process
-- [ ] Outline a strategy for accurate scale estimation without relying on unreliable reference objects
-- [ ] Design an improved 3D pose estimation and height calculation algorithm
-- [ ] Develop a robust weight estimation model incorporating multiple anthropometric features and ML
-- [ ] Define metrics and methods for achieving and validating 98% accuracy
+### Changes Made:
 
-### Phase 4: Implement enhanced height detection model
-- [x] Implement camera calibration module
-- [x] Integrate improved 3D pose estimation and height calculation
-- [x] Implement the robust weight estimation model
-- [x] Refactor existing code to incorporate new algorithms and best practices
-- [x] Ensure code modularity and readability
+#### `face_verifier.py`:
+- Increased threshold from 0.45 → 0.65 for real-world conditions
+- Added image preprocessing (CLAHE lighting normalization, denoising)
+- Added face alignment using eye landmarks
+- Expanded signature from 9 to 21 geometric features
+- Added signature normalization (zero mean, unit variance)
+- Implemented multi-metric similarity (euclidean + cosine + correlation)
+- Added comprehensive debug logging
+- Returns debug_info dict with face detection status, distance, similarity
 
-### Phase 5: Create improved camera interface
-- [x] Design and implement visual positioning guides (overlays)
-- [x] Develop clear on-screen instructions and feedback messages
-- [x] Enhance the overall aesthetic and user experience of the camera window
-- [x] Implement real-time feedback for pose and measurement quality
+#### `app.py`:
+- Added global `face_verifier = FaceVerifier(threshold=0.65)` instance
+- Updated `/api/verify_user_identity` to use global instance + debug_info
+- Updated `/api/verify_blind_identity` to use global instance + debug_info
+- Added `/api/debug_verify` endpoint for testing with any two images
+- Added proper logging to all verification endpoints
 
-### Phase 6: Test and validate the model accuracy
-- [x] Develop a comprehensive testing plan
-- [x] Create or acquire a diverse dataset for testing (various heights, genders, body types)
-- [x] Implement automated testing scripts
-- [x] Evaluate height and weight accuracy against ground truth data
-- [x] Analyze performance across different conditions (lighting, distance, pose)
-- [x] Refine models based on test results to achieve 98% accuracy
+#### `templates/blind_assessment.html`:
+- Added console logging of verification results
+- Shows confidence percentage in status messages
+- Displays debug confidence on identity mismatch warnings
+- API/network errors don't increment mismatch count (retry logic)
+- Increased initial verification interval: 2s → 3s
+- Increased ongoing verification interval: 5s → 10s
+- Added helpful message after 60s if still verifying
 
-### Phase 7: Package and deliver complete project
-- [ ] Document the project setup, installation, and usage instructions
-- [ ] Prepare a detailed report on the implemented solutions, challenges, and accuracy achieved
-- [ ] Organize all project files for easy delivery
-- [ ] Provide instructions for running the application
+#### `debug_verify.py` (NEW):
+- Standalone test script for local verification debugging
+- Tests multiple thresholds (0.45, 0.55, 0.65, 0.75, 0.85)
+- Can test with image files or base64 text files
+- Provides detailed diagnostic output
 
+### Root Causes Fixed:
+1. ✅ Threshold too strict (0.45) for real-world conditions → Now 0.65
+2. ✅ No image preprocessing (lighting, alignment) → Added CLAHE + face alignment
+3. ✅ No debug logging to diagnose failures → Full debug_info in responses
+4. ✅ New FaceVerifier instance per request → Global cached instance
+5. ✅ Frontend silently failing without user feedback → Confidence shown in UI
 

@@ -114,6 +114,11 @@ def user_dashboard():
 logger = setup_logging('deepfit')
 log_info("Starting DeepFit application")
 
+# Global face verifier instance with balanced threshold
+# Adjusted to 0.70 for better real-world reliability
+face_verifier = FaceVerifier(threshold=0.70)
+log_info("FaceVerifier initialized with threshold=0.70")
+
 # Configure secure sessions
 # Use a stable secret key from environment or a hardcoded fallback
 # This prevents sessions from being invalidated on every app restart
@@ -169,11 +174,13 @@ from vertical_jump_blueprint import vertical_jump_bp
 from dumbbell_blueprint import dumbbell_bp
 from benchmark_routes import benchmark_bp
 from chatbot_routes import chatbot_bp
+from height_blueprint import height_bp
 app.register_blueprint(situp_bp, url_prefix='/situp')
 app.register_blueprint(vertical_jump_bp, url_prefix='/vertical_jump')
 app.register_blueprint(dumbbell_bp, url_prefix='/dumbbell')
 app.register_blueprint(benchmark_bp)
 app.register_blueprint(chatbot_bp)
+app.register_blueprint(height_bp, url_prefix='/height')
 
 # Global error and request handlers
 @app.errorhandler(404)
@@ -610,18 +617,22 @@ def verify_user_identity():
             
         reference_photo = user['photo']
         
-        # Verify identity
-        is_match, confidence = face_verifier.verify_from_base64(reference_photo, current_frame_base64)
+        # Verify identity using global face_verifier instance
+        is_match, confidence, debug_info = face_verifier.verify_from_base64(reference_photo, current_frame_base64)
+        
+        log_info(f"User identity verification: is_match={is_match}, confidence={confidence:.4f}, debug={debug_info}")
         
         return jsonify({
             'success': True,
             'is_match': is_match,
             'confidence': float(confidence),
+            'debug_info': debug_info,
             'message': 'Identity verified' if is_match else 'Identity mismatch detected'
         })
         
     except Exception as e:
         print(f"Identity verification error: {e}")
+        log_error(f"Identity verification error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/guidelines')
@@ -2233,6 +2244,39 @@ def save_blind_assessment_detailed():
         log_error(f"Save detailed blind assessment error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/debug_verify', methods=['POST'])
+def debug_verify():
+    """Debug endpoint to test face verification between two provided images"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        reference_photo = data.get('reference_photo')
+        current_photo = data.get('current_photo')
+        threshold = data.get('threshold', 0.65)
+        
+        if not reference_photo or not current_photo:
+            return jsonify({'success': False, 'error': 'Both reference_photo and current_photo are required'}), 400
+        
+        # Create temporary verifier with optional custom threshold
+        temp_verifier = FaceVerifier(threshold=float(threshold))
+        is_match, confidence, debug_info = temp_verifier.verify_from_base64(reference_photo, current_photo)
+        
+        return jsonify({
+            'success': True,
+            'is_match': is_match,
+            'confidence': float(confidence),
+            'threshold': float(threshold),
+            'debug_info': debug_info,
+            'message': 'Match' if is_match else 'No match'
+        })
+        
+    except Exception as e:
+        print(f"Debug verify error: {e}")
+        log_error(f"Debug verify error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/verify_blind_identity', methods=['POST'])
 def verify_blind_identity():
     """Verify if current person matches the registered blind user photo"""
@@ -2259,19 +2303,61 @@ def verify_blind_identity():
         if not reference_photo:
             return jsonify({'success': False, 'error': 'Registration photo not found'}), 404
         
-        # Verify identity
-        face_verifier = FaceVerifier()
-        is_match, confidence = face_verifier.verify_from_base64(reference_photo, current_frame_base64)
+        # Verify identity using global face_verifier instance
+        is_match, confidence, debug_info = face_verifier.verify_from_base64(reference_photo, current_frame_base64)
+        
+        log_info(f"Blind identity verification: is_match={is_match}, confidence={confidence:.4f}, debug={debug_info}")
         
         return jsonify({
             'success': True,
             'is_match': is_match,
             'confidence': float(confidence),
+            'debug_info': debug_info,
             'message': 'Identity verified' if is_match else 'Identity mismatch detected'
         })
         
     except Exception as e:
         print(f"Blind identity verification error: {e}")
+        log_error(f"Blind identity verification error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/verify_exercise_identity', methods=['POST'])
+def verify_exercise_identity():
+    """Verify identity for exercise sessions using regular user account"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+    
+    try:
+        data = request.get_json()
+        current_frame_base64 = data.get('frame_data')
+        
+        if not current_frame_base64:
+            return jsonify({'success': False, 'error': 'No image data provided'}), 400
+            
+        # Get user from database
+        user = db.users.find_one({'_id': ObjectId(session['user_id'])})
+        if not user or 'photo' not in user:
+            return jsonify({'success': False, 'error': 'User photo not found'}), 404
+            
+        reference_photo = user['photo']
+        
+        # Verify identity using global face_verifier instance
+        is_match, confidence, debug_info = face_verifier.verify_from_base64(reference_photo, current_frame_base64)
+        
+        log_info(f"Exercise identity verification: is_match={is_match}, confidence={confidence:.4f}, debug={debug_info}")
+        
+        return jsonify({
+            'success': True,
+            'is_match': is_match,
+            'confidence': float(confidence),
+            'debug_info': debug_info,
+            'message': 'Identity verified' if is_match else 'Identity mismatch detected'
+        })
+        
+    except Exception as e:
+        print(f"Exercise identity verification error: {e}")
+        log_error(f"Exercise identity verification error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 

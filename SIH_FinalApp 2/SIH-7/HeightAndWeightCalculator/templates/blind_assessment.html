@@ -454,24 +454,38 @@
             
             const result = await response.json();
             
+            // Debug logging
+            console.log('Identity verification result:', result);
+            
             if (result.success) {
+                const confidence = (result.confidence * 100).toFixed(1);
+                const debugInfo = result.debug_info || {};
+                
+                // Show confidence in status for debugging
+                const statusEl = document.getElementById('testStatus');
+                
                 if (result.is_match) {
                     identityVerified = true;
                     identityMismatchCount = 0;
                     // Update status if this is the first verification
-                    if (document.getElementById('testStatus').textContent === 'Initializing...') {
-                        document.getElementById('testStatus').textContent = 'Identity verified. Starting assessment...';
+                    if (statusEl.textContent === 'Initializing...' || statusEl.textContent.includes('Verifying identity')) {
+                        statusEl.textContent = `Identity verified (${confidence}% confidence). Starting assessment...`;
                     }
                 } else {
                     identityMismatchCount++;
-                    console.log(`Identity mismatch detected. Count: ${identityMismatchCount}/${MAX_MISMATCH_COUNT}`);
+                    console.log(`Identity mismatch detected. Count: ${identityMismatchCount}/${MAX_MISMATCH_COUNT}, confidence: ${confidence}%`, debugInfo);
+                    
+                    // Show low confidence warning in status
+                    if (!identityVerified && statusEl.textContent.includes('Verifying')) {
+                        statusEl.textContent = `Verifying identity... (${confidence}% match, attempt ${identityMismatchCount})`;
+                    }
                     
                     if (identityMismatchCount >= MAX_MISMATCH_COUNT) {
                         testPaused = true;
                         const container = document.getElementById('assessmentContainer');
                         const warning = document.getElementById('faceWarning');
                         container.classList.add('face-not-visible');
-                        warning.innerHTML = '<i class="fas fa-exclamation-triangle"></i><br>IDENTITY MISMATCH<br><small>Registered user not detected</small>';
+                        warning.innerHTML = `<i class="fas fa-exclamation-triangle"></i><br>IDENTITY MISMATCH<br><small>Confidence: ${confidence}%<br>Registered user not detected</small>`;
                         warning.classList.add('show');
                         
                         if (timerInterval) clearInterval(timerInterval);
@@ -480,15 +494,23 @@
                         testResults.faceDetectionLogs.push({
                             timestamp: new Date().toISOString(),
                             status: 'identity_mismatch',
+                            confidence: result.confidence,
+                            debug_info: debugInfo,
                             currentTest: currentTest,
                             currentQuestion: currentQuestion,
                             timeRemaining: timeRemaining
                         });
                     }
                 }
+            } else {
+                console.error('Verification API error:', result.error);
+                // Retry on API error - don't increment mismatch count
+                identityMismatchCount = Math.max(0, identityMismatchCount - 1);
             }
         } catch (e) {
             console.error('Identity verification request error:', e);
+            // Network errors shouldn't count against the user
+            identityMismatchCount = Math.max(0, identityMismatchCount - 1);
         }
     }
 
@@ -1270,18 +1292,26 @@
         // Only start intro if camera is working
         const errorDiv = document.getElementById('camera-error');
         if (!errorDiv || errorDiv.style.display === 'none') {
-            // Start identity verification polling
-            document.getElementById('testStatus').textContent = 'Verifying identity against registration photo...';
-            identityCheckInterval = setInterval(verifyIdentityAgainstRegistration, 2000);
+            // Start identity verification polling (every 3 seconds to reduce server load)
+            document.getElementById('testStatus').textContent = 'Verifying identity against registration photo... Please look at the camera.';
+            identityCheckInterval = setInterval(verifyIdentityAgainstRegistration, 3000);
             
             // Wait for identity verification before starting intro
+            let identityWaitTime = 0;
             const waitForIdentity = setInterval(() => {
+                identityWaitTime += 1;
                 if (identityVerified) {
                     clearInterval(waitForIdentity);
                     clearInterval(identityCheckInterval);
-                    // Continue with periodic identity checks during test
-                    identityCheckInterval = setInterval(verifyIdentityAgainstRegistration, 5000);
+                    // Continue with periodic identity checks during test (every 10 seconds)
+                    identityCheckInterval = setInterval(verifyIdentityAgainstRegistration, 10000);
                     startIntro();
+                } else if (identityWaitTime > 60) {
+                    // After 60 seconds, show a helpful message
+                    const statusEl = document.getElementById('testStatus');
+                    if (!identityVerified && statusEl.textContent.includes('Verifying')) {
+                        statusEl.textContent = 'Still verifying... Ensure good lighting and face the camera directly. You may proceed when ready.';
+                    }
                 }
             }, 1000);
         }

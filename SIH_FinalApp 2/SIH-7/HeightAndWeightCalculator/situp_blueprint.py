@@ -12,7 +12,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 from bson import ObjectId
-from db_config import get_db
+from face_verifier import FaceVerifier
 
 # Create blueprint with template and static folders
 situp_bp = Blueprint('situp', __name__,
@@ -40,20 +40,26 @@ session_active = False
 session_completed = False
 start_time = None
 timer_thread = None
+face_verifier = FaceVerifier(threshold=0.70)
+reference_signature = None
+mismatch_count = 0
+MAX_MISMATCHES = 3
+
 exercise_stats = {
     'reps': 0,
     'feedback': 'Get Ready',
     'exercise': 'situps',
     'form_percentage': 0,
     'elapsed_time': 0,
-    'remaining_time': SITUP_DURATION
+    'remaining_time': SITUP_DURATION,
+    'identity_error': False
 }
 
 # Initialize detector
 class SitupsCounter:
     def __init__(self):
         self.mp_pose = mp.solutions.pose
-        self.pose = self.mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
+        self.pose = self.mp_pose.Pose(min_detection_confidence=0.7, min_tracking_confidence=0.7)
         self.mp_draw = mp.solutions.drawing_utils
         self.count = 0
         self.stage = None
@@ -286,13 +292,40 @@ def auto_save_results():
     return result
 
 def generate_frames():
-    """Generate video frames for streaming"""
-    global camera, is_recording, exercise_stats
+    """Generate video frames for streaming with Face Verification enforcement"""
+    global camera, is_recording, exercise_stats, reference_signature, mismatch_count
     
+    frame_count = 0
     while is_recording and camera is not None:
         success, frame = camera.read()
         if not success:
             break
+        
+        # Face Verification Enforcement (every 60 frames)
+        if reference_signature is not None and frame_count % 60 == 0:
+            current_signature = face_verifier.get_face_signature(frame)
+            if current_signature is not None:
+                similarity, _ = face_verifier.compute_similarity(reference_signature, current_signature)
+                if similarity < face_verifier.threshold:
+                    mismatch_count += 1
+                    log_warning(f"Situp: Identity mismatch detected ({mismatch_count}/{MAX_MISMATCHES})")
+                    cv2.putText(frame, f"IDENTITY MISMATCH ({mismatch_count})", (50, 100), 
+                               cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                    
+                    if mismatch_count >= MAX_MISMATCHES:
+                        log_error("Situp: Session terminated due to identity mismatch")
+                        exercise_stats['identity_error'] = True
+                        is_recording = False
+                        break
+                else:
+                    mismatch_count = 0 # Reset on success
+            else:
+                # If face not detected, we don't increment mismatch_count immediately
+                # but we can show a warning
+                cv2.putText(frame, "FACE NOT DETECTED", (50, 50), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+
+        frame_count += 1
         
         # Process frame for situps detection
         frame = situps_detector.detect_situps(frame)
@@ -303,10 +336,10 @@ def generate_frames():
         
         # Encode frame
         ret, buffer = cv2.imencode('.jpg', frame)
-        frame = buffer.tobytes()
+        frame_bytes = buffer.tobytes()
         
         yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
 
 # Routes
 @situp_bp.route('/')
@@ -334,9 +367,23 @@ def test():
 @situp_bp.route('/start_camera')
 def start_camera():
     """Start camera and timer"""
-    global camera, is_recording, session_active, session_completed, start_time, timer_thread
+    global camera, is_recording, session_active, session_completed, start_time, timer_thread, reference_signature, mismatch_count
     
     try:
+        # Load user for face verification reference
+        try:
+            db = get_db()
+            user_id = session.get('user_id')
+            if user_id and db is not None:
+                user = db.users.find_one({'_id': ObjectId(user_id)})
+                if user and 'photo' in user:
+                    ref_img = face_verifier.decode_base64_image(user['photo'])
+                    if ref_img is not None:
+                        reference_signature = face_verifier.get_face_signature(ref_img)
+                        log_info("✅ Situp: Reference signature loaded successfully")
+        except Exception as e:
+            log_error(f"Situp: Failed to load reference signature: {e}")
+
         # Always release existing camera first
         if camera is not None:
             camera.release()
@@ -360,6 +407,8 @@ def start_camera():
         is_recording = True
         session_active = True
         start_time = time.time()
+        mismatch_count = 0
+        exercise_stats['identity_error'] = False
         
         situps_detector.reset()
         
