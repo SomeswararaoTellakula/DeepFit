@@ -2493,7 +2493,7 @@ def evaluate_test2_with_gemini(responses):
         import os
         
         # Configure Gemini API (you need to set your API key)
-        api_key = os.getenv('GEMINI_API_KEY', 'AIzaSyD3gzb4NbA_YjTEq39GNGudTJHRgWWhPk4')
+        api_key = os.getenv('GEMINI_API_KEY', 'AIzaSyDT59Dd9UJvR1NlCLYamS8pVriOEQs3gRY')
         genai.configure(api_key=api_key)
         
         model = genai.GenerativeModel('gemini-pro')
