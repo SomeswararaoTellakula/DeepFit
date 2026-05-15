@@ -35,8 +35,11 @@ body::before {
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('/background.png') no-repeat center center;
+    background-image: url('/static/images/background.png');
+    background-repeat: no-repeat;
+    background-position: center center;
     background-size: cover;
+    background-attachment: fixed;
     z-index: -2;
     pointer-events: none;
 }
